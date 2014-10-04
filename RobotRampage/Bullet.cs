@@ -2,6 +2,7 @@
 using FarseerPhysics.Dynamics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,21 +28,24 @@ namespace RobotRampage
             Damage = d;
         }
 
+        
+
         public void Update(Microsoft.Xna.Framework.GameTime gameTime)
         {
         }
 
         public void Draw(Microsoft.Xna.Framework.Graphics.SpriteBatch sb)
         {
-            sb.Draw(this.texture, ConvertUnits.ToDisplayUnits(Position), srcRect, Color.White, 0.0f, new Vector2(0,0), 1.0f, SpriteEffects.None, 1.0f);
+            Vector2 offset = new Vector2(ConvertUnits.ToDisplayUnits(Position.X) - texture.Width / 2, ConvertUnits.ToDisplayUnits(Position.Y) - texture.Height / 2);
+            sb.Draw(this.texture, offset, srcRect, Color.White, Rotation, new Vector2(0, 0), 1.0f, SpriteEffects.None, 1.0f);
         }
 
 
 
         internal bool OffScreen()
         {
-            if ((ConvertUnits.ToDisplayUnits(Position.Y) + parent.CameraOffset.Y) > 500 || (ConvertUnits.ToDisplayUnits(Position.Y) + parent.CameraOffset.Y) < 0 ||
-                (ConvertUnits.ToDisplayUnits(Position.X) + parent.CameraOffset.X) > 800 || (ConvertUnits.ToDisplayUnits(Position.X) + parent.CameraOffset.X) < 0)
+            if ((ConvertUnits.ToDisplayUnits(Position.Y) + parent.CameraOffset.Y) > MainGame.ScreenHeight || (ConvertUnits.ToDisplayUnits(Position.Y) + parent.CameraOffset.Y) < 0 ||
+                (ConvertUnits.ToDisplayUnits(Position.X) + parent.CameraOffset.X) > MainGame.ScreenWidth || (ConvertUnits.ToDisplayUnits(Position.X) + parent.CameraOffset.X) < 0)
                 return true;
 
             return false;

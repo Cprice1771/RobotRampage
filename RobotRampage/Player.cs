@@ -18,12 +18,15 @@ namespace RobotRampage
         MainGame parent;
         PlayerState state;
         PlayerDirection direction;
-        Gun weapon;
+        public List<Gun> Inventory { get; private set; }
+
+        public GunSelected EquipedWeaponSlot {get; set;}
         public int Health { get; private set; }
+        public Gun EquipedWeapon { get; set; }
         public float Width { get { return texture.Width; } }
 
         public float Height { get { return texture.Height; } }
-
+        
         
         const float WALK_SPEED = 0.8f;
         const float RUN_SPEED = 4.0f;
@@ -41,6 +44,8 @@ namespace RobotRampage
             srcRect = new Rectangle(0, 0, texture.Width, texture.Height);
             destRect = new Rectangle((int)Position.X, (int)Position.Y, 50, 50);
             Health = 100;
+            Inventory = new List<Gun>();
+            EquipedWeaponSlot = GunSelected.PRIMARY;
         }
 
         public void Update(Microsoft.Xna.Framework.GameTime gameTime)
@@ -53,15 +58,15 @@ namespace RobotRampage
             if ((Mouse.GetState().X - parent.CameraOffset.X) > ConvertUnits.ToDisplayUnits(Position.X))
             {
                 direction = PlayerDirection.RIGHT;
-                weapon.Direction = PlayerDirection.RIGHT;
+                EquipedWeapon.Direction = PlayerDirection.RIGHT;
             }
             else
             {
                 direction = PlayerDirection.LEFT;
-                weapon.Direction = PlayerDirection.LEFT;
+                EquipedWeapon.Direction = PlayerDirection.LEFT;
             }
              
-            weapon.Update(gameTime);
+            EquipedWeapon.Update(gameTime);
         }
 
         public void Draw(SpriteBatch sb)
@@ -76,25 +81,50 @@ namespace RobotRampage
                 sb.Draw(this.texture, offset, srcRect, Color.White, 0.0f, new Vector2(0, 0), 1.0f, SpriteEffects.None, 1.0f);
             }
 
-            if (weapon != null)
+            if (EquipedWeapon != null)
             {
                 Vector2 weaponOffset = new Vector2((ConvertUnits.ToDisplayUnits(Position.X)), ConvertUnits.ToDisplayUnits(Position.Y));
-                weapon.position = weaponOffset;
-                weapon.Draw(sb);
+                EquipedWeapon.position = weaponOffset;
+                EquipedWeapon.Draw(sb);
             }
         }
 
-        public void EquipWeapon(Gun weap)
+        public void GiveGun(Gun weap)
         {
-            weapon = weap;
+            EquipedWeapon = weap;
+            Inventory.Add(weap);
         }
 
-        
+        public GunSelected CycleNextWeapon()
+        {
+            if ((int)EquipedWeaponSlot == Inventory.Count - 1)
+                EquipedWeaponSlot = GunSelected.PRIMARY;
+            else
+                EquipedWeaponSlot++;
+
+            EquipedWeapon = Inventory[(int)EquipedWeaponSlot];
+
+            return EquipedWeaponSlot;
+
+        }
+
+        public GunSelected CyclePreviousWeapon()
+        {
+            if ((int)EquipedWeaponSlot == 0)
+                EquipedWeaponSlot = (GunSelected)Inventory.Count - 1;
+            else
+                EquipedWeaponSlot--;
+
+            EquipedWeapon = Inventory[(int)EquipedWeaponSlot];
+
+            return EquipedWeaponSlot;
+
+        }
 
         internal Vector2 GunLocation()
         {
-            float x = ConvertUnits.ToDisplayUnits(Position.X) - (float)(Math.Cos(weapon.Rotation) * weapon.Width);
-            float y = ConvertUnits.ToDisplayUnits(Position.Y) - (float)(Math.Sin(weapon.Rotation) * weapon.Width);
+            float x = ConvertUnits.ToDisplayUnits(Position.X) - (float)(Math.Cos(EquipedWeapon.Rotation) * EquipedWeapon.Width);
+            float y = ConvertUnits.ToDisplayUnits(Position.Y) - (float)(Math.Sin(EquipedWeapon.Rotation) * EquipedWeapon.Width);
             return new Vector2(x, y);
         }
 

@@ -18,4 +18,11 @@ namespace RobotRampage
         LEFT = 0,
         RIGHT = 1
     }
+
+    public enum GunSelected : int
+    {
+        PRIMARY = 0,
+        SECONDARY = 1,
+        TERTIARY = 2
+    }
 }
