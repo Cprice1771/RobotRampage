@@ -25,4 +25,11 @@ namespace RobotRampage
         SECONDARY = 1,
         TERTIARY = 2
     }
+
+    public enum GameState : int
+    {
+        MAIN_MENU,
+        OPTIONS_MENU,
+        LEVEL
+    }
 }

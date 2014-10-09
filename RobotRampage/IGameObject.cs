@@ -7,7 +7,7 @@ using System.Text;
 
 namespace RobotRampage
 {
-    interface IGameObject
+    public interface IGameObject
     {
         void Update(GameTime gameTime);
         void Draw(SpriteBatch sb);

@@ -33,11 +33,21 @@ namespace RobotRampage
 
         #region public members
         public Vector2 CameraOffset;
+        public GameState State;
         #endregion
 
         #region private members
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
+
+        SpriteFont font;
+        Song backgroundMusic;
+        Camera cam;
+        World physicsWorld;
+        int mouseWheelLoc;
+        List<Level> singlePlayerLevels;
+        int currentLevel;
+        MainMenu menu;
 
         #region Textures
         Texture2D playerSpriteSheet;
@@ -49,18 +59,12 @@ namespace RobotRampage
         Texture2D wallTexture;
         Texture2D winPointTexture;
         Texture2D rocketTexture;
-        Texture2D hudTexture; 
+        Texture2D hudTexture;
+        Texture2D Title;
+        Texture2D PlayGameTexture;
+        Texture2D OptionsMenuTexture;
+        Texture2D spawnPointTexture;
         #endregion
-
-        SpriteFont font;
-        Song backgroundMusic;
-        Camera cam;
-        
-        World physicsWorld;
-
-        
-
-        int mouseWheelLoc;
 
         #region world objects
         Player player;
@@ -94,16 +98,32 @@ namespace RobotRampage
             physicsWorld = new World(new Vector2(0.0f, 9.82f));
             
             gameObjects = new List<IGameObject>();
+            State = GameState.MAIN_MENU;
+            menu = new MainMenu(Title, PlayGameTexture, OptionsMenuTexture, this);
+            currentLevel = 1;
+            singlePlayerLevels = CreateLevels();
             
+            hud = new HUD(hudTexture, player.Inventory, new Vector2(0, 0), font, this);
+            cam = new Camera();
+            MediaPlayer.Volume = 1.0f;
+            IsMouseVisible = true;
+        }
+
+        private List<Level> CreateLevels()
+        {
+            //TODO create or load all our levels for the game
             CreateEnemies();
             CreateFloor();
             CreateWalls();
             CreatePlayer();
             CreateWalls();
             CreateWinPoint();
-            hud = new HUD(hudTexture, player.Inventory, new Vector2(0, 0), font, this);
-            cam = new Camera();
-            MediaPlayer.Volume = 1.0f;
+            List<Level> levels = new List<Level>();
+
+            Level l = new Level(gameObjects, new SpawnPoint(new Vector2(100, 150), spawnPointTexture), "Level 1");
+            levels.Add(l);
+
+            return levels;
         }
 
         /// <summary>
@@ -150,6 +170,10 @@ namespace RobotRampage
             winPointTexture = Content.Load<Texture2D>("WinPoint");
             rocketTexture = Content.Load<Texture2D>("rocket.png");
             hudTexture = Content.Load<Texture2D>("HUD.png");
+            spawnPointTexture = Content.Load<Texture2D>("SpawnPoint");
+            Title = Content.Load<Texture2D>("Title.png");
+            PlayGameTexture = Content.Load<Texture2D>("PlayGame");
+            OptionsMenuTexture = Content.Load<Texture2D>("Options");
         }
         #endregion
 
@@ -164,91 +188,103 @@ namespace RobotRampage
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            physicsWorld.Step((float)gameTime.ElapsedGameTime.TotalMilliseconds * 0.001f);
-
-            
-
-            #region Mouse Inputs
-            if (Mouse.GetState().ScrollWheelValue < mouseWheelLoc)
-                player.CycleNextWeapon();
-            else if (Mouse.GetState().ScrollWheelValue > mouseWheelLoc)
-                player.CyclePreviousWeapon();
-
-            mouseWheelLoc = Mouse.GetState().ScrollWheelValue;
-            #endregion
-
-            
-
-            #region Camera
-            int Y_CAMERA_THRESHOLD = ScreenHeight / 2;
-            //X movement
-            if (ConvertUnits.ToDisplayUnits(player.Position.X) > (-1 * (cam.Position.X)) + ScreenWidth - X_CAMERA_THRESHOLD)
-                cam.Move(new Vector2(-1 * (ConvertUnits.ToDisplayUnits(player.Position.X) - (-1 * (cam.Position.X) + ScreenWidth - X_CAMERA_THRESHOLD)), 0));
-
-            else if (ConvertUnits.ToDisplayUnits(player.Position.X) < (-1 * (cam.Position.X)) + X_CAMERA_THRESHOLD)
-                cam.Move(new Vector2(-1 * (ConvertUnits.ToDisplayUnits(player.Position.X) - (-1 * (cam.Position.X) + X_CAMERA_THRESHOLD)), 0));
-
-            //Y movement
-            float playerY = ConvertUnits.ToDisplayUnits(player.Position.Y);
-            //if (playerY > cam.Position.Y + 400 && cam.Position.Y > 0)
-             //   cam.Move(new Vector2(0, -1 * (ConvertUnits.ToDisplayUnits(player.Position.Y) - (-1 * (cam.Position.Y) + 400))));
-
-            if (playerY < cam.Position.Y + Y_CAMERA_THRESHOLD)
-                cam.Move(new Vector2(0, -1 * (ConvertUnits.ToDisplayUnits(player.Position.Y) - (-1 * (cam.Position.Y) + Y_CAMERA_THRESHOLD))));
-           
-            CameraOffset = cam.Position;
-            #endregion
-
-            #region Keyboard inputs
-            //TODO: fix ground colloision detection
-            if (Keyboard.GetState().IsKeyDown(Keys.Space) && player.LinearVelocity.Y == 0)
-                player.ApplyForce(new Vector2(0, -500.0f));
-
-            if (Keyboard.GetState().IsKeyDown(Keys.D) && player.LinearVelocity.X < 5.0f)
-                player.ApplyForce(new Vector2(20.0f, 0));
-            else if (Keyboard.GetState().IsKeyDown(Keys.A) && player.LinearVelocity.X > -5.0f)
-                player.ApplyForce(new Vector2(-20.0f, 0));
-
-            if (Keyboard.GetState().IsKeyDown(Keys.R))
-                player.EquipedWeapon.Reload();
-            #endregion
-
-            #region Update HUD
-            hud.Health = player.Health;
-            hud.AmmoLoaded = player.EquipedWeapon.LoadedAmmo;
-            hud.AmmoReserve = player.EquipedWeapon.ReserveAmmo;
-            hud.Reloading = player.EquipedWeapon.Reloading;
-            hud.selection = player.EquipedWeaponSlot;
-            #endregion
-
-            #region world cleanup
-            for (int i = gameObjects.Count - 1; i >= 0; i--)
+            switch (State)
             {
-                if (gameObjects[i] is ILivingThing)
-                {
-                    ILivingThing deadObject = gameObjects[i] as ILivingThing;
-                    if (deadObject.Health <= 0)
-                    {
-                        physicsWorld.RemoveBody(deadObject as Body);
-                        gameObjects.RemoveAt(i);
-                    }
-                }
-                else if (gameObjects[i] is Bullet)
-                {
-                    Bullet bullet = gameObjects[i] as Bullet;
-                    if (bullet.OffScreen())
-                    {
-                        physicsWorld.RemoveBody(bullet);
-                        gameObjects.RemoveAt(i);
-                    }
-                }
-            }
-            #endregion
+                case GameState.LEVEL:
+                    physicsWorld.Step((float)gameTime.ElapsedGameTime.TotalMilliseconds * 0.001f);
 
-            #region Misc Updates
-            player.Update(gameTime);
-            crosshair.Update(gameTime);
-            #endregion
+            
+
+                    #region Mouse Inputs
+                    if (Mouse.GetState().ScrollWheelValue < mouseWheelLoc)
+                        player.CycleNextWeapon();
+                    else if (Mouse.GetState().ScrollWheelValue > mouseWheelLoc)
+                        player.CyclePreviousWeapon();
+
+                    mouseWheelLoc = Mouse.GetState().ScrollWheelValue;
+                    #endregion
+
+            
+
+                    #region Camera
+                    int Y_CAMERA_THRESHOLD = ScreenHeight / 2;
+                    //X movement
+                    if (ConvertUnits.ToDisplayUnits(player.Position.X) > (-1 * (cam.Position.X)) + ScreenWidth - X_CAMERA_THRESHOLD)
+                        cam.Move(new Vector2(-1 * (ConvertUnits.ToDisplayUnits(player.Position.X) - (-1 * (cam.Position.X) + ScreenWidth - X_CAMERA_THRESHOLD)), 0));
+
+                    else if (ConvertUnits.ToDisplayUnits(player.Position.X) < (-1 * (cam.Position.X)) + X_CAMERA_THRESHOLD)
+                        cam.Move(new Vector2(-1 * (ConvertUnits.ToDisplayUnits(player.Position.X) - (-1 * (cam.Position.X) + X_CAMERA_THRESHOLD)), 0));
+
+                    //Y movement
+                    float playerY = ConvertUnits.ToDisplayUnits(player.Position.Y);
+                    //if (playerY > cam.Position.Y + 400 && cam.Position.Y > 0)
+                     //   cam.Move(new Vector2(0, -1 * (ConvertUnits.ToDisplayUnits(player.Position.Y) - (-1 * (cam.Position.Y) + 400))));
+
+                    if (playerY < cam.Position.Y + Y_CAMERA_THRESHOLD)
+                        cam.Move(new Vector2(0, -1 * (ConvertUnits.ToDisplayUnits(player.Position.Y) - (-1 * (cam.Position.Y) + Y_CAMERA_THRESHOLD))));
+           
+                    CameraOffset = cam.Position;
+                    #endregion
+
+                    #region Keyboard inputs
+                    //TODO: fix ground colloision detection
+                    if (Keyboard.GetState().IsKeyDown(Keys.Space) && player.LinearVelocity.Y == 0)
+                        player.ApplyForce(new Vector2(0, -500.0f));
+
+                    if (Keyboard.GetState().IsKeyDown(Keys.D) && player.LinearVelocity.X < 5.0f)
+                        player.ApplyForce(new Vector2(20.0f, 0));
+                    else if (Keyboard.GetState().IsKeyDown(Keys.A) && player.LinearVelocity.X > -5.0f)
+                        player.ApplyForce(new Vector2(-20.0f, 0));
+
+                    if (Keyboard.GetState().IsKeyDown(Keys.R))
+                        player.EquipedWeapon.Reload();
+                    #endregion
+
+                    #region Update HUD
+                    hud.Health = player.Health;
+                    hud.AmmoLoaded = player.EquipedWeapon.LoadedAmmo;
+                    hud.AmmoReserve = player.EquipedWeapon.ReserveAmmo;
+                    hud.Reloading = player.EquipedWeapon.Reloading;
+                    hud.selection = player.EquipedWeaponSlot;
+                    #endregion
+
+                    #region world cleanup
+                    for (int i = gameObjects.Count - 1; i >= 0; i--)
+                    {
+                        if (gameObjects[i] is ILivingThing)
+                        {
+                            ILivingThing deadObject = gameObjects[i] as ILivingThing;
+                            if (deadObject.Health <= 0)
+                            {
+                                physicsWorld.RemoveBody(deadObject as Body);
+                                gameObjects.RemoveAt(i);
+                            }
+                        }
+                        else if (gameObjects[i] is Bullet)
+                        {
+                            Bullet bullet = gameObjects[i] as Bullet;
+                            if (bullet.OffScreen())
+                            {
+                                physicsWorld.RemoveBody(bullet);
+                                gameObjects.RemoveAt(i);
+                            }
+                        }
+                    }
+                    #endregion
+
+                    #region Misc Updates
+                    player.Update(gameTime);
+                    crosshair.Update(gameTime);
+                    #endregion
+                    break;
+                case GameState.MAIN_MENU:
+                    menu.Update(gameTime);
+                    break;
+                case GameState.OPTIONS_MENU:
+                    throw new NotImplementedException();
+                    break;
+
+            }
 
             base.Update(gameTime);
         }
@@ -265,15 +301,24 @@ namespace RobotRampage
             var viewMaxtrix = cam.GetTransform();
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied,
                                     null, null, null, null, viewMaxtrix * Matrix.CreateScale(GetScreenScale()));
+            switch (State)
+            {
+                case GameState.LEVEL:
+                    foreach (IGameObject go in gameObjects)
+                        go.Draw(spriteBatch);
 
-
-            foreach (IGameObject go in gameObjects)
-                go.Draw(spriteBatch);
-
-            winPoint.Draw(spriteBatch);
-            player.Draw(spriteBatch);
-            hud.Draw(spriteBatch);
-            crosshair.Draw(spriteBatch);
+                    winPoint.Draw(spriteBatch);
+                    player.Draw(spriteBatch);
+                    hud.Draw(spriteBatch);
+                    crosshair.Draw(spriteBatch);
+                    break;
+                case GameState.MAIN_MENU:
+                    menu.Draw(spriteBatch);
+                    break;
+                case GameState.OPTIONS_MENU:
+                    throw new NotImplementedException();
+                    break;
+            }
             spriteBatch.End();
 
             base.Draw(gameTime);
@@ -444,6 +489,8 @@ namespace RobotRampage
                 return true;
             }, ref aabb);
 
+            physicsWorld.RemoveBody(fixtureA.Body);
+
             //foreach (Body body in physicsWorld.QueryAABB(new FarseerPhysics.Collision.AABB(fixtureA.Body.Position, )
             //{
             //    Vector2 vectorFromExplosion = body.Position - explosion.Position;
@@ -483,6 +530,26 @@ namespace RobotRampage
         }
         #endregion
 
+        #region State transitions
+        public void GoToMainMenu()
+        {
+            State = GameState.MAIN_MENU;
+            IsMouseVisible = true;
+        }
+
+        public void StartGame()
+        {
+            State = GameState.LEVEL;
+            IsMouseVisible = false;
+        }
+
+        internal void GoToOptionsMenu()
+        {
+            State = GameState.OPTIONS_MENU;
+            IsMouseVisible = true;
+        }
+        #endregion
+
         #region Cleanup
         /// <summary>
         /// UnloadContent will be called once per game and is the place to unload
@@ -495,5 +562,7 @@ namespace RobotRampage
         #endregion
 
 
+
+        
     }
 }
