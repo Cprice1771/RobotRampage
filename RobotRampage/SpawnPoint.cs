@@ -9,7 +9,7 @@ namespace RobotRampage
 {
     public class SpawnPoint
     {
-        Vector2 location;
+        public Vector2 location { get; set; }
         Texture2D texture;
         public SpawnPoint(Vector2 loc, Texture2D text)
         {

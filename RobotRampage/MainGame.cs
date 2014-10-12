@@ -64,13 +64,17 @@ namespace RobotRampage
         Texture2D PlayGameTexture;
         Texture2D OptionsMenuTexture;
         Texture2D spawnPointTexture;
+        Texture2D handGunTexture;
+        Texture2D shotGunTexture;
         #endregion
 
         #region world objects
         Player player;
         List<IGameObject> gameObjects;
         Crosshair crosshair;
-        Gun defaultWeapon;
+        Gun assualtRifle;
+        Gun handGun;
+        Gun shotGun;
         WinPoint winPoint;
         HUD hud;
         #endregion
@@ -100,10 +104,10 @@ namespace RobotRampage
             gameObjects = new List<IGameObject>();
             State = GameState.MAIN_MENU;
             menu = new MainMenu(Title, PlayGameTexture, OptionsMenuTexture, this);
-            currentLevel = 1;
+            currentLevel = 0;
             singlePlayerLevels = CreateLevels();
             
-            hud = new HUD(hudTexture, player.Inventory, new Vector2(0, 0), font, this);
+            hud = new HUD(hudTexture, player.Inventory, player.EquipedWeaponSlot, new Vector2(0, 0), font, this);
             cam = new Camera();
             MediaPlayer.Volume = 1.0f;
             IsMouseVisible = true;
@@ -120,7 +124,7 @@ namespace RobotRampage
             CreateWinPoint();
             List<Level> levels = new List<Level>();
 
-            Level l = new Level(gameObjects, new SpawnPoint(new Vector2(100, 150), spawnPointTexture), "Level 1");
+            Level l = new Level(gameObjects, new SpawnPoint(new Vector2(ConvertUnits.ToSimUnits(100), ConvertUnits.ToSimUnits(150)), spawnPointTexture), "Level 1");
             levels.Add(l);
 
             return levels;
@@ -152,8 +156,9 @@ namespace RobotRampage
             Vector2 initialPlayerPosition = new Vector2(ScreenWidth / 2, 150);
             
             crosshair = new Crosshair(crosshairTexture, new Vector2(ScreenWidth / 2, ScreenHeight / 2), this);
-            defaultWeapon = new Gun(defaultGunTexture, initialPlayerPosition, this, 25, 30, 5.0f, 100, 100.0, 1000.0);
-
+            assualtRifle = new Gun(defaultGunTexture, initialPlayerPosition, this, 25, 30, 5.0f, 100, 100.0, 1000.0);
+            shotGun = new Gun(shotGunTexture, initialPlayerPosition, this, 50, 15, 5.0f, 20, 1000.0, 1500.0);
+            handGun = new Gun(handGunTexture, initialPlayerPosition, this, 40, 10, 5.0f, 200, 500.0, 800.0);
             mouseWheelLoc = Mouse.GetState().ScrollWheelValue;
             
         }
@@ -174,6 +179,8 @@ namespace RobotRampage
             Title = Content.Load<Texture2D>("Title.png");
             PlayGameTexture = Content.Load<Texture2D>("PlayGame");
             OptionsMenuTexture = Content.Load<Texture2D>("Options");
+            handGunTexture = Content.Load<Texture2D>("handgun");
+            shotGunTexture = Content.Load<Texture2D>("shotgun");
         }
         #endregion
 
@@ -203,8 +210,6 @@ namespace RobotRampage
 
                     mouseWheelLoc = Mouse.GetState().ScrollWheelValue;
                     #endregion
-
-            
 
                     #region Camera
                     int Y_CAMERA_THRESHOLD = ScreenHeight / 2;
@@ -270,6 +275,8 @@ namespace RobotRampage
                             }
                         }
                     }
+                    if (player.Health <= 0)
+                        respawnPlayer();
                     #endregion
 
                     #region Misc Updates
@@ -287,6 +294,12 @@ namespace RobotRampage
             }
 
             base.Update(gameTime);
+        }
+
+        private void respawnPlayer()
+        {
+            player.Position = singlePlayerLevels[currentLevel].Spawn.location;
+            player.Reset();
         }
         #endregion
 
@@ -335,9 +348,9 @@ namespace RobotRampage
             player.Restitution = 0.0f;
             player.Friction = 1.0f;
             player.Position = ConvertUnits.ToSimUnits(100, 150);
-            player.GiveGun(defaultWeapon);
-            player.GiveGun(defaultWeapon);
-            player.GiveGun(defaultWeapon);
+            player.GiveGun(handGun);
+            player.GiveGun(shotGun);
+            player.GiveGun(assualtRifle);
         }
 
         private void CreateWinPoint()
@@ -463,6 +476,7 @@ namespace RobotRampage
             if (fixtureA.Body is Player)
             {
                 //Win game
+                currentLevel++;
             }
 
             return true;

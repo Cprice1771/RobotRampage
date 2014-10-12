@@ -15,7 +15,7 @@ namespace RobotRampage
         MainGame parent;
         Rectangle srcRect;
         bool equipped;
-        int magazineSize;
+        
         int damage;
         public PlayerDirection Direction;
         float muzzleVelocity;
@@ -24,15 +24,16 @@ namespace RobotRampage
         double reloadSpeed;
         double reloadTime;
 
+        public int magazineSize { get; set; }
         public bool Reloading { get; set; }
-        public int LoadedAmmo { get; private set; }
+        public int LoadedAmmo { get; set; }
         public float Width { get { return Texture.Width; } }
         public float Height { get { return Texture.Height; } }
 
         public int ReserveAmmo
         {
             get;
-            private set;
+            set;
         }
        
          public float Rotation
@@ -46,6 +47,18 @@ namespace RobotRampage
             }
          }
 
+        /// <summary>
+        /// Contructor for Gun
+        /// </summary>
+        /// <param name="t">Texture</param>
+        /// <param name="pos">Position</param>
+        /// <param name="game">reference to MainGame</param>
+        /// <param name="d">Damage of bullets</param>
+        /// <param name="magSize">Size of magazine</param>
+        /// <param name="mv">Muzzle velocity</param>
+        /// <param name="ammo">Starting ammo</param>
+        /// <param name="fr">Fire rate in ms</param>
+        /// <param name="rs">Reload speed in ms</param>
         public Gun(Texture2D t, Vector2 pos, MainGame game, int d, int magSize, float mv, int ammo, double fr, double rs)
         {
             Texture = t;

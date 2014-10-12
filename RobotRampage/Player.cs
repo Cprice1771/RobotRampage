@@ -20,7 +20,8 @@ namespace RobotRampage
         PlayerDirection direction;
         public List<Gun> Inventory { get; private set; }
 
-        public GunSelected EquipedWeaponSlot {get; set;}
+
+        public GunSelected EquipedWeaponSlot { get; set; }
         public int Health { get; private set; }
         public Gun EquipedWeapon { get; set; }
         public float Width { get { return texture.Width; } }
@@ -92,7 +93,9 @@ namespace RobotRampage
         public void GiveGun(Gun weap)
         {
             EquipedWeapon = weap;
+            EquipedWeaponSlot = (GunSelected)Inventory.Count;
             Inventory.Add(weap);
+            
         }
 
         public GunSelected CycleNextWeapon()
@@ -132,6 +135,16 @@ namespace RobotRampage
         public void DealDamage(int damage)
         {
             Health -= damage;
+        }
+
+        internal void Reset()
+        {
+            Health = 100;
+            foreach (Gun g in Inventory)
+            {
+                g.LoadedAmmo = g.magazineSize;
+                g.ReserveAmmo = g.magazineSize * 3;
+            }
         }
     }
 }

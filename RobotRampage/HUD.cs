@@ -24,14 +24,14 @@ namespace RobotRampage
 
         List<Gun> inventory;
 
-        public HUD(Texture2D hud, List<Gun> inven, Vector2 pos, SpriteFont f, MainGame g)
+        public HUD(Texture2D hud, List<Gun> inven, GunSelected s, Vector2 pos, SpriteFont f, MainGame g)
         {
             hudTexture = hud;
             inventory = inven;
             position = pos;
             font = f;
             parent = g;
-            selection = GunSelected.PRIMARY;
+            selection = s;
             Health = 100;
             AmmoLoaded = 30;
             AmmoReserve = 150;
