@@ -34,6 +34,7 @@ namespace RobotRampage
         #region public members
         public Vector2 CameraOffset;
         public GameState State;
+        public Camera cam;
         #endregion
 
         #region private members
@@ -42,7 +43,6 @@ namespace RobotRampage
 
         SpriteFont font;
         Song backgroundMusic;
-        Camera cam;
         World physicsWorld;
         int mouseWheelLoc;
         List<Level> singlePlayerLevels;
@@ -56,6 +56,9 @@ namespace RobotRampage
         Texture2D defaultGunTexture;
         Texture2D bulletTexture;
         Texture2D robotTexture;
+        Texture2D suicideRobotTexture;
+        Texture2D emissionSpriteSheet;
+        Texture2D laserTexture;
         Texture2D wallTexture;
         Texture2D winPointTexture;
         Texture2D rocketTexture;
@@ -171,6 +174,9 @@ namespace RobotRampage
             defaultGunTexture = Content.Load<Texture2D>("gun");
             bulletTexture = Content.Load<Texture2D>("bullet");
             robotTexture = Content.Load<Texture2D>("robot");
+            suicideRobotTexture = Content.Load<Texture2D>("suicideRobot");
+            emissionSpriteSheet = Content.Load<Texture2D>("emissionSpriteSheet");
+            laserTexture = Content.Load<Texture2D>("laser");
             wallTexture = Content.Load<Texture2D>("wall");
             winPointTexture = Content.Load<Texture2D>("WinPoint");
             rocketTexture = Content.Load<Texture2D>("rocket.png");
@@ -199,8 +205,6 @@ namespace RobotRampage
             {
                 case GameState.LEVEL:
                     physicsWorld.Step((float)gameTime.ElapsedGameTime.TotalMilliseconds * 0.001f);
-
-            
 
                     #region Mouse Inputs
                     if (Mouse.GetState().ScrollWheelValue < mouseWheelLoc)
@@ -282,6 +286,10 @@ namespace RobotRampage
                     #region Misc Updates
                     player.Update(gameTime);
                     crosshair.Update(gameTime);
+
+                    for (int i = gameObjects.Count - 1; i >= 0; i--)
+                        gameObjects[i].Update(gameTime);
+
                     #endregion
                     break;
                 case GameState.MAIN_MENU:
@@ -404,14 +412,14 @@ namespace RobotRampage
             }
         }
 
-        internal void CreateBullet(int damage, float rotation, float muzzleVelocity)
+        internal void CreateBullet(int damage, float rotation, float muzzleVelocity, Vector2 location)
         {
             Bullet bulletBody = new Bullet(bulletTexture, this, damage, physicsWorld);
             bulletBody.CreateFixture(new PolygonShape(PolygonTools.CreateRectangle(ConvertUnits.ToSimUnits(bulletTexture.Width / 2),  ConvertUnits.ToSimUnits(bulletTexture.Height / 2)), 1.0f));
             bulletBody.BodyType = BodyType.Dynamic;
             bulletBody.Restitution = 0.3f;
             bulletBody.Friction = 1.0f;
-            bulletBody.Position = ConvertUnits.ToSimUnits(player.GunLocation());
+            bulletBody.Position = location;
             bulletBody.Rotation = rotation;
             bulletBody.OnCollision += new OnCollisionEventHandler(Bullet_OnCollision);
             bulletBody.ApplyForce(new Vector2(-(float)Math.Cos(rotation) * muzzleVelocity, -(float)Math.Sin(rotation) * muzzleVelocity));
@@ -448,6 +456,36 @@ namespace RobotRampage
                 robot.IgnoreGravity = true;
                 gameObjects.Add(robot);
             }
+
+            for (int i = 0; i < 8; i++)
+            {
+                SuicideRobot robot = new SuicideRobot(suicideRobotTexture, emissionSpriteSheet, this, physicsWorld);
+                robot.CreateFixture(new PolygonShape(PolygonTools.CreateRectangle(ConvertUnits.ToSimUnits(robotTexture.Width / 2), ConvertUnits.ToSimUnits(robotTexture.Height / 2)), 1.0f));
+                robot.BodyType = BodyType.Dynamic;
+                robot.Restitution = 0.3f;
+                robot.Friction = 1.0f;
+                robot.Position = ConvertUnits.ToSimUnits(((i + 1) * 500) + r.NextDouble() * 200, 400 + r.NextDouble() * 100);
+                robot.OnCollision += new OnCollisionEventHandler(SuicideRobot_OnCollision);
+                robot.IgnoreGravity = true;
+                gameObjects.Add(robot);
+            }
+        }
+
+        
+
+        internal void CreateLaser(int damage, float rotation, float muzzleVelocity, Vector2 location)
+        {
+            Bullet bulletBody = new Bullet(laserTexture, this, damage, physicsWorld);
+            bulletBody.CreateFixture(new PolygonShape(PolygonTools.CreateRectangle(ConvertUnits.ToSimUnits(bulletTexture.Width / 2), ConvertUnits.ToSimUnits(bulletTexture.Height / 2)), 1.0f));
+            bulletBody.BodyType = BodyType.Dynamic;
+            bulletBody.Restitution = 0.3f;
+            bulletBody.Friction = 1.0f;
+            bulletBody.Position = location;
+            bulletBody.Rotation = rotation;
+            bulletBody.OnCollision += new OnCollisionEventHandler(Laser_OnCollision);
+            bulletBody.ApplyForce(new Vector2(-(float)Math.Cos(rotation) * muzzleVelocity, -(float)Math.Sin(rotation) * muzzleVelocity));
+            bulletBody.IgnoreGravity = true;
+            gameObjects.Add(bulletBody);
         }
         #endregion
 
@@ -469,7 +507,36 @@ namespace RobotRampage
             return false;
         }
 
+        private bool Laser_OnCollision(Fixture fixtureA, Fixture fixtureB, Contact contact)
+        {
+            if (fixtureA.Body.GetType() == typeof(Bullet) && gameObjects.Contains((Bullet)fixtureA.Body) && !(fixtureB.Body is Robot))
+            {
+                physicsWorld.RemoveBody(fixtureA.Body);
+                gameObjects.Remove((Bullet)fixtureA.Body);
+                if (fixtureB.Body is Player)
+                {
+                    ILivingThing hitObject = fixtureB.Body as ILivingThing;
+                    Bullet bull = fixtureA.Body as Bullet;
+                    hitObject.DealDamage(bull.Damage);
+                }
+                return true;
+            }
+            return true;
+        }
 
+        private bool SuicideRobot_OnCollision(Fixture fixtureA, Fixture fixtureB, Contact contact)
+        {
+            if (fixtureB.Body is Player)
+            {
+                physicsWorld.RemoveBody(fixtureA.Body);
+                gameObjects.Remove((SuicideRobot)fixtureA.Body);
+                Player hitObject = fixtureB.Body as Player;
+                hitObject.DealDamage(15); 
+                return true;
+            }
+
+            return false;
+        }
 
         private bool WinPoint_OnCollision(Fixture fixtureA, Fixture fixtureB, FarseerPhysics.Dynamics.Contacts.Contact contact)
         {
@@ -575,7 +642,17 @@ namespace RobotRampage
         }
         #endregion
 
+        #region public helpers
+        public Vector2 GetPlayerLocation()
+        {
+            return player.Position;
+        }
+        #endregion
 
+
+
+
+        
 
         
     }

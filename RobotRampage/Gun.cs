@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using FarseerPhysics;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
@@ -133,7 +134,9 @@ namespace RobotRampage
             //If we can shoot
             if (!Reloading && LoadedAmmo > 0)
             {
-                parent.CreateBullet(damage, Rotation, muzzleVelocity);
+                float x = position.X - (float)(Math.Cos(Rotation) * (Width + 5));
+                float y = position.Y - (float)(Math.Sin(Rotation) * (Width + 5));
+                parent.CreateBullet(damage, Rotation, muzzleVelocity, ConvertUnits.ToSimUnits(new Vector2(x, y)));
                 LoadedAmmo--;
                 //parent.CreateRocket(damage, Rotation, muzzleVelocity);
             }

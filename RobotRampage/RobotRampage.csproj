@@ -53,6 +53,7 @@
     <Compile Include="Robot.cs" />
     <Compile Include="Rocket.cs" />
     <Compile Include="SpawnPoint.cs" />
+    <Compile Include="suicideRobot.cs" />
     <Compile Include="Wall.cs" />
     <Compile Include="WinPoint.cs" />
   </ItemGroup>
@@ -70,6 +71,9 @@
     <Content Include="Content\crosshair.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Content\emissionSpriteSheet.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Content\FailingDefense.wma">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -83,6 +87,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\HUD.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\laser.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\Options.png">
@@ -104,6 +111,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\SpawnPoint.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\suicideRobot.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\Title.png">

@@ -126,8 +126,8 @@ namespace RobotRampage
 
         internal Vector2 GunLocation()
         {
-            float x = ConvertUnits.ToDisplayUnits(Position.X) - (float)(Math.Cos(EquipedWeapon.Rotation) * EquipedWeapon.Width);
-            float y = ConvertUnits.ToDisplayUnits(Position.Y) - (float)(Math.Sin(EquipedWeapon.Rotation) * EquipedWeapon.Width);
+            float x = ConvertUnits.ToDisplayUnits(Position.X) - (float)(Math.Cos(EquipedWeapon.Rotation) * (EquipedWeapon.Width + 5));
+            float y = ConvertUnits.ToDisplayUnits(Position.Y) - (float)(Math.Sin(EquipedWeapon.Rotation) * (EquipedWeapon.Width + 5));
             return new Vector2(x, y);
         }
 

@@ -9,20 +9,21 @@ using System.Text;
 
 namespace RobotRampage
 {
-    public class Robot : Body, IGameObject, ILivingThing
+    public class SuicideRobot : Body, IGameObject, ILivingThing
     {
         Texture2D texture;
+        Texture2D emssionSpriteSheet;
         Rectangle srcRect;
         Rectangle destRect;
+        Rectangle srcRectEmission;
+        Rectangle destRectEmission;
         MainGame parent;
         PlayerState state;
         PlayerDirection direction;
         Gun weapon;
         World myWorld;
-        double lastFire;
-        double fireRate;
 
-        public Robot(Texture2D t, MainGame game, World w)
+        public SuicideRobot(Texture2D t, Texture2D et, MainGame game, World w)
             : base(w)
         {
             texture = t;
@@ -33,35 +34,37 @@ namespace RobotRampage
             //frameCounter = 0;
             //frameRate = 1.0f / 24.0f;
             srcRect = new Rectangle(0, 0, texture.Width, texture.Height);
-            destRect = new Rectangle((int)Position.X, (int)Position.Y, 50, 50);
+            destRect = new Rectangle((int)Position.X, (int)Position.Y, texture.Width, texture.Height);
+
+            srcRectEmission = new Rectangle(0, 0, 30 , 50);
+            destRectEmission = new Rectangle((int)Position.X + texture.Width, (int)Position.Y + texture.Height, 30, 50);
             myWorld = w;
-            lastFire = -1.0;
-            fireRate = 1000;
+
+            emssionSpriteSheet = et;
         }
 
         public void Update(Microsoft.Xna.Framework.GameTime gameTime)
         {
-            lastFire += gameTime.ElapsedGameTime.TotalMilliseconds;
-
             if (this.LinearVelocity.X >= 0)
                 direction = PlayerDirection.RIGHT;
             else
                 direction = PlayerDirection.LEFT;
 
+            //If on screen
             if ((ConvertUnits.ToDisplayUnits(Position.Y) + parent.CameraOffset.Y) < MainGame.ScreenHeight && (ConvertUnits.ToDisplayUnits(Position.Y) + parent.CameraOffset.Y) > 0 &&
-                (ConvertUnits.ToDisplayUnits(Position.X) + parent.CameraOffset.X) < MainGame.ScreenWidth && (ConvertUnits.ToDisplayUnits(Position.X) + parent.CameraOffset.X) > 0 &&
-                (lastFire == -1.0f ||lastFire > fireRate))     
-                {
-                    lastFire = gameTime.ElapsedGameTime.TotalMilliseconds;
-                    ShootPlayer();  
-                }
+                (ConvertUnits.ToDisplayUnits(Position.X) + parent.CameraOffset.X) < MainGame.ScreenWidth && (ConvertUnits.ToDisplayUnits(Position.X) + parent.CameraOffset.X) > 0)
+            {
+                RunAtPlayerPlayer();
+            }
+                
         }
 
-        private void ShootPlayer()
+        private void RunAtPlayerPlayer()
         {
             float x = (Position.X - parent.GetPlayerLocation().X);
             float y = (Position.Y - parent.GetPlayerLocation().Y);
-            parent.CreateLaser(10, (float)Math.Atan2(y, x), 5f, Position);
+            double angle = Math.Atan2(y, x);
+            LinearVelocity = new Vector2((float)(-5 * Math.Cos(angle)), (float)(-5 * Math.Sin(angle)));
         }
 
         public void Draw(Microsoft.Xna.Framework.Graphics.SpriteBatch sb)
@@ -84,7 +87,5 @@ namespace RobotRampage
         {
             Health -= damage;
         }
-
-        
     }
 }
