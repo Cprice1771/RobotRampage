@@ -11,8 +11,17 @@ namespace RobotRampage
 {
     public class Gun : IGameObject
     {
-        public Vector2 position;
+        #region public members
+        public Vector2 position { get; set; }
         public Texture2D Texture { get; set; }
+        public int magazineSize { get; set; }
+        public bool Reloading { get; set; }
+        public int LoadedAmmo { get; set; }
+        public float Width { get { return Texture.Width; } }
+        public float Height { get { return Texture.Height; } }
+        #endregion
+
+        #region Private members
         MainGame parent;
         Rectangle srcRect;
         bool equipped;
@@ -24,12 +33,10 @@ namespace RobotRampage
         double lastFire;
         double reloadSpeed;
         double reloadTime;
+        RobotRampage.MainGame.CreateProjectile shoot;
+        #endregion
 
-        public int magazineSize { get; set; }
-        public bool Reloading { get; set; }
-        public int LoadedAmmo { get; set; }
-        public float Width { get { return Texture.Width; } }
-        public float Height { get { return Texture.Height; } }
+        
 
         public int ReserveAmmo
         {
@@ -60,7 +67,7 @@ namespace RobotRampage
         /// <param name="ammo">Starting ammo</param>
         /// <param name="fr">Fire rate in ms</param>
         /// <param name="rs">Reload speed in ms</param>
-        public Gun(Texture2D t, Vector2 pos, MainGame game, int d, int magSize, float mv, int ammo, double fr, double rs)
+        public Gun(Texture2D t, Vector2 pos, MainGame game, int d, int magSize, float mv, int ammo, double fr, double rs, RobotRampage.MainGame.CreateProjectile cp)
         {
             Texture = t;
             position = pos;
@@ -80,11 +87,12 @@ namespace RobotRampage
             }
 
             muzzleVelocity = mv;
-            LoadedAmmo = 30;
+            LoadedAmmo = magSize;
             fireRate = fr;
             reloadSpeed = rs;
             lastFire = -1.0;
             reloadTime = 0.0;
+            shoot = cp;
         }
 
         public void Update(Microsoft.Xna.Framework.GameTime gameTime)
@@ -136,9 +144,11 @@ namespace RobotRampage
             {
                 float x = position.X - (float)(Math.Cos(Rotation) * (Width + 5));
                 float y = position.Y - (float)(Math.Sin(Rotation) * (Width + 5));
-                parent.CreateBullet(damage, Rotation, muzzleVelocity, ConvertUnits.ToSimUnits(new Vector2(x, y)));
-                LoadedAmmo--;
+                //parent.CreateBullet();
                 //parent.CreateRocket(damage, Rotation, muzzleVelocity);
+                shoot(damage, Rotation, muzzleVelocity);
+                LoadedAmmo--;
+                
             }
         }
 

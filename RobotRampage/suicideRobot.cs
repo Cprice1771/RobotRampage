@@ -1,4 +1,6 @@
 ﻿using FarseerPhysics;
+using FarseerPhysics.Collision.Shapes;
+using FarseerPhysics.Common;
 using FarseerPhysics.Dynamics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -35,11 +37,14 @@ namespace RobotRampage
             //frameRate = 1.0f / 24.0f;
             srcRect = new Rectangle(0, 0, texture.Width, texture.Height);
             destRect = new Rectangle((int)Position.X, (int)Position.Y, texture.Width, texture.Height);
-
+            this.CreateFixture(new PolygonShape(PolygonTools.CreateRectangle(ConvertUnits.ToSimUnits(t.Width / 2), ConvertUnits.ToSimUnits(t.Height / 2)), 1.0f));
+            this.BodyType = BodyType.Dynamic;
+            this.Restitution = 0.3f;
+            this.Friction = 1.0f;
             srcRectEmission = new Rectangle(0, 0, 30 , 50);
             destRectEmission = new Rectangle((int)Position.X + texture.Width, (int)Position.Y + texture.Height, 30, 50);
             myWorld = w;
-
+            this.IgnoreGravity = true;
             emssionSpriteSheet = et;
         }
 
@@ -72,9 +77,9 @@ namespace RobotRampage
             Vector2 offset = new Vector2(ConvertUnits.ToDisplayUnits(Position.X) - texture.Width / 2, ConvertUnits.ToDisplayUnits(Position.Y) - texture.Height / 2);
 
             if (direction == PlayerDirection.LEFT)
-                sb.Draw(this.texture, offset, srcRect, Color.White, 0.0f, new Vector2(0, 0), 1.0f, SpriteEffects.FlipHorizontally, 1.0f);
+                sb.Draw(this.texture, offset, srcRect, Color.White, Rotation, new Vector2(0, 0), 1.0f, SpriteEffects.FlipHorizontally, 1.0f);
             else
-                sb.Draw(this.texture, offset, srcRect, Color.White, 0.0f, new Vector2(0, 0), 1.0f, SpriteEffects.None, 1.0f);
+                sb.Draw(this.texture, offset, srcRect, Color.White, Rotation, new Vector2(0, 0), 1.0f, SpriteEffects.None, 1.0f);
         }
 
         public int Health

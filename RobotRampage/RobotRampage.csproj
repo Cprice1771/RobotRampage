@@ -53,7 +53,7 @@
     <Compile Include="Robot.cs" />
     <Compile Include="Rocket.cs" />
     <Compile Include="SpawnPoint.cs" />
-    <Compile Include="suicideRobot.cs" />
+    <Compile Include="SuicideRobot.cs" />
     <Compile Include="Wall.cs" />
     <Compile Include="WinPoint.cs" />
   </ItemGroup>
@@ -87,6 +87,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\HUD.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\In a Heartbeat.wma">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\laser.png">
@@ -129,6 +132,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Content\FailingDefense.xnb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\In a Heartbeat.xnb">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Content\myFont.spritefont">

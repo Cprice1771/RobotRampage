@@ -1,4 +1,6 @@
 ﻿using FarseerPhysics;
+using FarseerPhysics.Collision.Shapes;
+using FarseerPhysics.Common;
 using FarseerPhysics.Dynamics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -37,6 +39,11 @@ namespace RobotRampage
             myWorld = w;
             lastFire = -1.0;
             fireRate = 1000;
+            this.CreateFixture(new PolygonShape(PolygonTools.CreateRectangle(ConvertUnits.ToSimUnits(t.Width / 2), ConvertUnits.ToSimUnits(t.Height / 2)), 1.0f));
+            this.BodyType = BodyType.Dynamic;
+            this.Restitution = 0.3f;
+            this.Friction = 1.0f;
+            this.IgnoreGravity = true;
         }
 
         public void Update(Microsoft.Xna.Framework.GameTime gameTime)

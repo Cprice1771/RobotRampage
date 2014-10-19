@@ -15,6 +15,7 @@ using FarseerPhysics.Common;
 using Microsoft.Xna.Framework.Media;
 using FarseerPhysics.Dynamics.Contacts;
 using FarseerPhysics.Collision;
+using System.Diagnostics;
 #endregion
 
 namespace RobotRampage
@@ -34,7 +35,8 @@ namespace RobotRampage
         #region public members
         public Vector2 CameraOffset;
         public GameState State;
-        public Camera cam;
+        public Camera gameCamera;
+        public delegate void CreateProjectile(int x, float y, float z);
         #endregion
 
         #region private members
@@ -42,7 +44,8 @@ namespace RobotRampage
         SpriteBatch spriteBatch;
 
         SpriteFont font;
-        Song backgroundMusic;
+        Song levelMusic;
+        Song menuMusic;
         World physicsWorld;
         int mouseWheelLoc;
         List<Level> singlePlayerLevels;
@@ -78,6 +81,7 @@ namespace RobotRampage
         Gun assualtRifle;
         Gun handGun;
         Gun shotGun;
+        Gun RocketLauncher;
         WinPoint winPoint;
         HUD hud;
         #endregion
@@ -111,27 +115,35 @@ namespace RobotRampage
             singlePlayerLevels = CreateLevels();
             
             hud = new HUD(hudTexture, player.Inventory, player.EquipedWeaponSlot, new Vector2(0, 0), font, this);
-            cam = new Camera();
+            gameCamera = new Camera();
             MediaPlayer.Volume = 1.0f;
             IsMouseVisible = true;
+            MediaPlayer.IsRepeating = true;
+            TryPlay(menuMusic);
         }
 
         private List<Level> CreateLevels()
         {
             //TODO create or load all our levels for the game
             CreateEnemies();
-            CreateFloor();
+            CreateFloors();
             CreateWalls();
             CreatePlayer();
             CreateWalls();
             CreateWinPoint();
             List<Level> levels = new List<Level>();
-
-            Level l = new Level(gameObjects, new SpawnPoint(new Vector2(ConvertUnits.ToSimUnits(100), ConvertUnits.ToSimUnits(150)), spawnPointTexture), "Level 1");
-            levels.Add(l);
+            Dictionary<Type, List<Vector2>> levelObjects = GetLevelDictFromGameObjects(gameObjects);
+            Level level1 = new Level(levelObjects, new SpawnPoint(new Vector2(ConvertUnits.ToSimUnits(100), ConvertUnits.ToSimUnits(150)), spawnPointTexture), levelMusic, "Level 1");
+            levels.Add(level1);
+            Rocket r = new Rocket(rocketTexture, this, 50, physicsWorld);
+            r.Position = ConvertUnits.ToSimUnits(100, 100);
+            Level level2 = new Level(levelObjects, new SpawnPoint(new Vector2(ConvertUnits.ToSimUnits(100), ConvertUnits.ToSimUnits(150)), spawnPointTexture), levelMusic, "Level 2");
+            levels.Add(level2);
 
             return levels;
         }
+
+        
 
         /// <summary>
         /// LoadContent will be called once per game and is the place to load
@@ -144,8 +156,8 @@ namespace RobotRampage
 
             LoadTextures();
 
-            backgroundMusic = Content.Load<Song>("FailingDefense");
-
+            levelMusic = Content.Load<Song>("FailingDefense");
+            menuMusic = Content.Load<Song>("In a Heartbeat");
             //TODO: uncomment for music
             //TryPlay(backgroundMusic);
 
@@ -159,12 +171,17 @@ namespace RobotRampage
             Vector2 initialPlayerPosition = new Vector2(ScreenWidth / 2, 150);
             
             crosshair = new Crosshair(crosshairTexture, new Vector2(ScreenWidth / 2, ScreenHeight / 2), this);
-            assualtRifle = new Gun(defaultGunTexture, initialPlayerPosition, this, 25, 30, 5.0f, 100, 100.0, 1000.0);
-            shotGun = new Gun(shotGunTexture, initialPlayerPosition, this, 50, 15, 5.0f, 20, 1000.0, 1500.0);
-            handGun = new Gun(handGunTexture, initialPlayerPosition, this, 40, 10, 5.0f, 200, 500.0, 800.0);
+            assualtRifle = new Gun(defaultGunTexture, initialPlayerPosition, this, 25, 30, 5.0f, 100, 100.0, 1000.0, CreateBullet);
+            shotGun = new Gun(shotGunTexture, initialPlayerPosition, this, 50, 15, 5.0f, 20, 1000.0, 1500.0, CreateShotgunBullet);
+            handGun = new Gun(handGunTexture, initialPlayerPosition, this, 40, 10, 5.0f, 200, 500.0, 800.0, CreateBullet);
+            RocketLauncher = new Gun(handGunTexture, initialPlayerPosition, this, 100, 4, 5.0f, 20, 1000.0, 1500.0, CreateRocket);
             mouseWheelLoc = Mouse.GetState().ScrollWheelValue;
             
         }
+
+       
+
+        
 
         private void LoadTextures()
         {
@@ -216,29 +233,29 @@ namespace RobotRampage
                     #endregion
 
                     #region Camera
-                    int Y_CAMERA_THRESHOLD = ScreenHeight / 2;
+                    int Y_CAMERA_THRESHOLD = (ScreenHeight / 2) + 100;
                     //X movement
-                    if (ConvertUnits.ToDisplayUnits(player.Position.X) > (-1 * (cam.Position.X)) + ScreenWidth - X_CAMERA_THRESHOLD)
-                        cam.Move(new Vector2(-1 * (ConvertUnits.ToDisplayUnits(player.Position.X) - (-1 * (cam.Position.X) + ScreenWidth - X_CAMERA_THRESHOLD)), 0));
+                    if (ConvertUnits.ToDisplayUnits(player.Position.X) > (-1 * (gameCamera.Position.X)) + ScreenWidth - X_CAMERA_THRESHOLD)
+                        gameCamera.Move(new Vector2(-1 * (ConvertUnits.ToDisplayUnits(player.Position.X) - (-1 * (gameCamera.Position.X) + ScreenWidth - X_CAMERA_THRESHOLD)), 0));
 
-                    else if (ConvertUnits.ToDisplayUnits(player.Position.X) < (-1 * (cam.Position.X)) + X_CAMERA_THRESHOLD)
-                        cam.Move(new Vector2(-1 * (ConvertUnits.ToDisplayUnits(player.Position.X) - (-1 * (cam.Position.X) + X_CAMERA_THRESHOLD)), 0));
+                    else if (ConvertUnits.ToDisplayUnits(player.Position.X) < (-1 * (gameCamera.Position.X)) + X_CAMERA_THRESHOLD)
+                        gameCamera.Move(new Vector2(-1 * (ConvertUnits.ToDisplayUnits(player.Position.X) - (-1 * (gameCamera.Position.X) + X_CAMERA_THRESHOLD)), 0));
 
                     //Y movement
                     float playerY = ConvertUnits.ToDisplayUnits(player.Position.Y);
                     //if (playerY > cam.Position.Y + 400 && cam.Position.Y > 0)
                      //   cam.Move(new Vector2(0, -1 * (ConvertUnits.ToDisplayUnits(player.Position.Y) - (-1 * (cam.Position.Y) + 400))));
 
-                    if (playerY < cam.Position.Y + Y_CAMERA_THRESHOLD)
-                        cam.Move(new Vector2(0, -1 * (ConvertUnits.ToDisplayUnits(player.Position.Y) - (-1 * (cam.Position.Y) + Y_CAMERA_THRESHOLD))));
+                    if (playerY < gameCamera.Position.Y + Y_CAMERA_THRESHOLD + 100)
+                        gameCamera.Move(new Vector2(0, -1 * (ConvertUnits.ToDisplayUnits(player.Position.Y) - (-1 * (gameCamera.Position.Y) + Y_CAMERA_THRESHOLD))));
            
-                    CameraOffset = cam.Position;
+                    CameraOffset = gameCamera.Position;
                     #endregion
 
                     #region Keyboard inputs
                     //TODO: fix ground colloision detection
                     if (Keyboard.GetState().IsKeyDown(Keys.Space) && player.LinearVelocity.Y == 0)
-                        player.ApplyForce(new Vector2(0, -500.0f));
+                        player.ApplyForce(new Vector2(0, -200.0f));
 
                     if (Keyboard.GetState().IsKeyDown(Keys.D) && player.LinearVelocity.X < 5.0f)
                         player.ApplyForce(new Vector2(20.0f, 0));
@@ -294,6 +311,7 @@ namespace RobotRampage
                     break;
                 case GameState.MAIN_MENU:
                     menu.Update(gameTime);
+                    gameCamera.Position = Vector2.Zero;
                     break;
                 case GameState.OPTIONS_MENU:
                     throw new NotImplementedException();
@@ -306,9 +324,13 @@ namespace RobotRampage
 
         private void respawnPlayer()
         {
+            CreateGameObjectsFromLevel(singlePlayerLevels[currentLevel].Objects);
             player.Position = singlePlayerLevels[currentLevel].Spawn.location;
+            player.LinearVelocity = Vector2.Zero;
             player.Reset();
         }
+
+        
         #endregion
 
         #region Draw
@@ -319,7 +341,7 @@ namespace RobotRampage
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-            var viewMaxtrix = cam.GetTransform();
+            var viewMaxtrix = gameCamera.GetTransform();
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied,
                                     null, null, null, null, viewMaxtrix * Matrix.CreateScale(GetScreenScale()));
             switch (State)
@@ -350,49 +372,50 @@ namespace RobotRampage
         private void CreatePlayer()
         {
             player = new Player(playerSpriteSheet, this, physicsWorld);
-            player.CreateFixture(new PolygonShape(PolygonTools.CreateRectangle(ConvertUnits.ToSimUnits(playerSpriteSheet.Width / 2), ConvertUnits.ToSimUnits(playerSpriteSheet.Height / 2)), 1.0f));
-            player.BodyType = BodyType.Dynamic;
-            player.FixedRotation = true;
-            player.Restitution = 0.0f;
-            player.Friction = 1.0f;
             player.Position = ConvertUnits.ToSimUnits(100, 150);
-            player.GiveGun(handGun);
+            player.GiveGun(RocketLauncher);
+            //player.GiveGun(handGun);
             player.GiveGun(shotGun);
             player.GiveGun(assualtRifle);
+            
         }
 
         private void CreateWinPoint()
         {
             winPoint = new WinPoint(winPointTexture, physicsWorld);
-            winPoint.CreateFixture(new PolygonShape(PolygonTools.CreateRectangle(ConvertUnits.ToSimUnits(winPointTexture.Width / 2), ConvertUnits.ToSimUnits(winPointTexture.Height / 2)), 1.0f));
-            winPoint.BodyType = BodyType.Kinematic;
-            winPoint.FixedRotation = true;
-            winPoint.Restitution = 0.0f;
-            winPoint.Friction = 1.0f;
             winPoint.OnCollision += new OnCollisionEventHandler(WinPoint_OnCollision);
             winPoint.Position = ConvertUnits.ToSimUnits(1500, 300);
         }
 
-        private void CreateFloor()
+        private void CreateFloor(Vector2 pos)
+        {
+            Floor f = new Floor(floorTexture, this, physicsWorld);
+            f.Position = pos;
+            gameObjects.Add(f);   
+        }
+
+        private void CreateFloors()
         {
             for (int i = 0; i < 5; i++)
             {
                 Floor f = new Floor(floorTexture, this, physicsWorld);
-                f.CreateFixture(new PolygonShape(PolygonTools.CreateRectangle(ConvertUnits.ToSimUnits(floorTexture.Width / 2), ConvertUnits.ToSimUnits(floorTexture.Height / 2)), 1.0f));
-                f.BodyType = BodyType.Static;
-                f.Restitution = 0.0f;
-                f.Friction = 0.6f;
+                
                 f.Position = ConvertUnits.ToSimUnits((ScreenWidth / 2) + (i * floorTexture.Width) - 100, ScreenHeight - 10);
                 gameObjects.Add(f);
             }
 
             Floor foo = new Floor(floorTexture, this, physicsWorld);
-            foo.CreateFixture(new PolygonShape(PolygonTools.CreateRectangle(ConvertUnits.ToSimUnits(floorTexture.Width / 2), ConvertUnits.ToSimUnits(floorTexture.Height / 2)), 1.0f));
-            foo.BodyType = BodyType.Static;
-            foo.Restitution = 0.0f;
-            foo.Friction = 0.6f;
+            
             foo.Position = ConvertUnits.ToSimUnits(900, 100);
             gameObjects.Add(foo);
+        }
+
+        private void CreateWall(Vector2 pos)
+        {
+            Wall w = new Wall(wallTexture, this, physicsWorld);
+
+            w.Position = pos;
+            gameObjects.Add(w);
         }
 
         private void CreateWalls()
@@ -402,24 +425,18 @@ namespace RobotRampage
                 for (int j = 0; j < 10; j++)
                 {
                     Wall w = new Wall(wallTexture, this, physicsWorld);
-                    w.CreateFixture(new PolygonShape(PolygonTools.CreateRectangle(ConvertUnits.ToSimUnits(wallTexture.Width / 2), ConvertUnits.ToSimUnits(wallTexture.Height / 2)), 1.0f));
-                    w.BodyType = BodyType.Static;
-                    w.Restitution = 0.0f;
-                    w.Friction = 0.6f;
+                    
                     w.Position = ConvertUnits.ToSimUnits(i * (floorTexture.Width * 5), ScreenHeight - (j * wallTexture.Height));
                     gameObjects.Add(w);
                 }
             }
         }
 
-        internal void CreateBullet(int damage, float rotation, float muzzleVelocity, Vector2 location)
+        public void CreateBullet(int damage, float rotation, float muzzleVelocity)
         {
             Bullet bulletBody = new Bullet(bulletTexture, this, damage, physicsWorld);
-            bulletBody.CreateFixture(new PolygonShape(PolygonTools.CreateRectangle(ConvertUnits.ToSimUnits(bulletTexture.Width / 2),  ConvertUnits.ToSimUnits(bulletTexture.Height / 2)), 1.0f));
-            bulletBody.BodyType = BodyType.Dynamic;
-            bulletBody.Restitution = 0.3f;
-            bulletBody.Friction = 1.0f;
-            bulletBody.Position = location;
+
+            bulletBody.Position = ConvertUnits.ToSimUnits(player.GunLocation());
             bulletBody.Rotation = rotation;
             bulletBody.OnCollision += new OnCollisionEventHandler(Bullet_OnCollision);
             bulletBody.ApplyForce(new Vector2(-(float)Math.Cos(rotation) * muzzleVelocity, -(float)Math.Sin(rotation) * muzzleVelocity));
@@ -427,18 +444,31 @@ namespace RobotRampage
             gameObjects.Add(bulletBody);
         }
 
+        private void CreateShotgunBullet(int damage, float rotation, float muzzleVelocity)
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                Bullet bulletBody = new Bullet(bulletTexture, this, damage, physicsWorld);
+
+                float rotDiff = (i - 2) * 0.1f;
+                bulletBody.Position = ConvertUnits.ToSimUnits(player.GunLocation());
+                bulletBody.Rotation = rotation + rotDiff;
+                bulletBody.OnCollision += new OnCollisionEventHandler(Bullet_OnCollision);
+                bulletBody.ApplyForce(new Vector2(-(float)Math.Cos(rotation + rotDiff) * muzzleVelocity, -(float)Math.Sin(rotation + rotDiff) * muzzleVelocity));
+                bulletBody.IgnoreGravity = true;
+                gameObjects.Add(bulletBody);
+            }
+        }
+
         internal void CreateRocket(int damage, float rotation, float muzzleVelocity)
         {
             Rocket rocketBody = new Rocket(rocketTexture, this, damage, physicsWorld);
-            rocketBody.CreateFixture(new PolygonShape(PolygonTools.CreateRectangle(ConvertUnits.ToSimUnits(rocketTexture.Width / 2), ConvertUnits.ToSimUnits(rocketTexture.Height / 2)), 1.0f));
-            rocketBody.BodyType = BodyType.Dynamic;
-            rocketBody.Restitution = 0.3f;
-            rocketBody.Friction = 1.0f;
+            
             rocketBody.Position = ConvertUnits.ToSimUnits(player.GunLocation());
             rocketBody.Rotation = rotation;
             rocketBody.OnCollision += new OnCollisionEventHandler(Rocket_OnCollision);
-            rocketBody.ApplyForce(new Vector2(-(float)Math.Cos(rotation) * muzzleVelocity, -(float)Math.Sin(rotation) * muzzleVelocity));
-            rocketBody.IgnoreGravity = true;
+            rocketBody.LinearVelocity = new Vector2(-(float)Math.Cos(rotation) * muzzleVelocity, -(float)Math.Sin(rotation) * muzzleVelocity);
+            
             gameObjects.Add(rocketBody);
         }
 
@@ -448,43 +478,42 @@ namespace RobotRampage
             for (int i = 0; i < 8; i++)
             {
                 Robot robot = new Robot(robotTexture, this, physicsWorld);
-                robot.CreateFixture(new PolygonShape(PolygonTools.CreateRectangle(ConvertUnits.ToSimUnits(robotTexture.Width / 2), ConvertUnits.ToSimUnits(robotTexture.Height / 2)), 1.0f));
-                robot.BodyType = BodyType.Dynamic;
-                robot.Restitution = 0.3f;
-                robot.Friction = 1.0f;
                 robot.Position = ConvertUnits.ToSimUnits(((i + 1) * 400) + r.NextDouble() * 200, 100 + r.NextDouble() * 200);
-                robot.IgnoreGravity = true;
                 gameObjects.Add(robot);
             }
 
             for (int i = 0; i < 8; i++)
             {
                 SuicideRobot robot = new SuicideRobot(suicideRobotTexture, emissionSpriteSheet, this, physicsWorld);
-                robot.CreateFixture(new PolygonShape(PolygonTools.CreateRectangle(ConvertUnits.ToSimUnits(robotTexture.Width / 2), ConvertUnits.ToSimUnits(robotTexture.Height / 2)), 1.0f));
-                robot.BodyType = BodyType.Dynamic;
-                robot.Restitution = 0.3f;
-                robot.Friction = 1.0f;
                 robot.Position = ConvertUnits.ToSimUnits(((i + 1) * 500) + r.NextDouble() * 200, 400 + r.NextDouble() * 100);
                 robot.OnCollision += new OnCollisionEventHandler(SuicideRobot_OnCollision);
-                robot.IgnoreGravity = true;
                 gameObjects.Add(robot);
             }
         }
 
-        
+        internal void CreateRobot(Vector2 pos)
+        {
+            Robot robot = new Robot(robotTexture, this, physicsWorld);
+            robot.Position = pos;
+            gameObjects.Add(robot);
+        }
+
+        internal void CreateSuicideRobot(Vector2 pos)
+        {
+            SuicideRobot robot = new SuicideRobot(suicideRobotTexture, emissionSpriteSheet, this, physicsWorld);
+            robot.Position = pos;
+            robot.OnCollision += new OnCollisionEventHandler(SuicideRobot_OnCollision);
+            gameObjects.Add(robot);
+        }
 
         internal void CreateLaser(int damage, float rotation, float muzzleVelocity, Vector2 location)
         {
             Bullet bulletBody = new Bullet(laserTexture, this, damage, physicsWorld);
-            bulletBody.CreateFixture(new PolygonShape(PolygonTools.CreateRectangle(ConvertUnits.ToSimUnits(bulletTexture.Width / 2), ConvertUnits.ToSimUnits(bulletTexture.Height / 2)), 1.0f));
-            bulletBody.BodyType = BodyType.Dynamic;
-            bulletBody.Restitution = 0.3f;
-            bulletBody.Friction = 1.0f;
             bulletBody.Position = location;
             bulletBody.Rotation = rotation;
             bulletBody.OnCollision += new OnCollisionEventHandler(Laser_OnCollision);
             bulletBody.ApplyForce(new Vector2(-(float)Math.Cos(rotation) * muzzleVelocity, -(float)Math.Sin(rotation) * muzzleVelocity));
-            bulletBody.IgnoreGravity = true;
+            
             gameObjects.Add(bulletBody);
         }
         #endregion
@@ -492,6 +521,9 @@ namespace RobotRampage
         #region event handlers
         private bool Bullet_OnCollision(Fixture fixtureA, Fixture fixtureB, FarseerPhysics.Dynamics.Contacts.Contact contact)
         {
+            if (fixtureB.Body.GetType() == typeof(Bullet) || fixtureB.Body.GetType() == typeof(Rocket))
+                return false;
+
             if (fixtureA.Body.GetType() == typeof(Bullet) && gameObjects.Contains((Bullet)fixtureA.Body))
             {
                 physicsWorld.RemoveBody(fixtureA.Body);
@@ -509,7 +541,11 @@ namespace RobotRampage
 
         private bool Laser_OnCollision(Fixture fixtureA, Fixture fixtureB, Contact contact)
         {
-            if (fixtureA.Body.GetType() == typeof(Bullet) && gameObjects.Contains((Bullet)fixtureA.Body) && !(fixtureB.Body is Robot))
+            //Pass through other robots
+            if(fixtureB.Body is Robot)
+                return false;
+
+            if (fixtureA.Body.GetType() == typeof(Bullet) && gameObjects.Contains((Bullet)fixtureA.Body))
             {
                 physicsWorld.RemoveBody(fixtureA.Body);
                 gameObjects.Remove((Bullet)fixtureA.Body);
@@ -540,13 +576,31 @@ namespace RobotRampage
 
         private bool WinPoint_OnCollision(Fixture fixtureA, Fixture fixtureB, FarseerPhysics.Dynamics.Contacts.Contact contact)
         {
-            if (fixtureA.Body is Player)
+            if (fixtureB.Body is Player)
             {
-                //Win game
+                 ClearWorld();
                 currentLevel++;
+                if (currentLevel == singlePlayerLevels.Count) //TODO: win game screen
+                {
+                    GoToMainMenu();
+                    return true;
+                }
+                gameObjects = new List<IGameObject>();
+                ClearWorld();
+                CreateGameObjectsFromLevel(singlePlayerLevels[currentLevel].Objects);
+                singlePlayerLevels[currentLevel].PlayMusic();
+                respawnPlayer();
             }
 
             return true;
+        }
+
+        private void ClearWorld()
+        {
+            for (int i = gameObjects.Count - 1; i > 0; i--)
+            {
+                physicsWorld.RemoveBody((Body)gameObjects[i]);
+            }
         }
 
         private bool Rocket_OnCollision(Fixture fixtureA, Fixture fixtureB, Contact contact)
@@ -554,24 +608,45 @@ namespace RobotRampage
             if (fixtureB.Body is Player)
                 return false;
 
+            if (fixtureB.Body is Bullet)
+                return false;
+
+            if (fixtureB.Body is Rocket)
+                return false;
+
+            Stopwatch s = new Stopwatch();
+            s.Start();
             Vector2 bodyPos = fixtureA.Body.Position;
 
-            Vector2 min = bodyPos - new Vector2(10, 10);
-            Vector2 max = bodyPos + new Vector2(10, 10);
+            Vector2 min = bodyPos - new Vector2(1, 1);
+            Vector2 max = bodyPos + new Vector2(1, 1);
 
             AABB aabb = new AABB(ref min, ref max);
+            List<Fixture> fixtures = new List<Fixture>();
 
             physicsWorld.QueryAABB(fixture =>
             {
-                Vector2 fv = fixture.Body.Position - bodyPos;
-                fv.Normalize();
-                fv *= 40;
-                fixture.Body.ApplyLinearImpulse(ref fv);
+                fixtures.Add(fixture);
                 return true;
             }, ref aabb);
 
-            physicsWorld.RemoveBody(fixtureA.Body);
+            foreach (Fixture f in fixtures)
+            {
+                //Dont apply forces to static objects, bullets, or other rockets
+                if (!f.Body.IsStatic && f.Body.GetType() != typeof(Bullet) && f.Body.GetType() != typeof(Rocket))
+                {
+                    Vector2 fv = f.Body.Position - bodyPos;
+                    //fv.Normalize();
+                    fv *= 10;
+                    f.Body.ApplyLinearImpulse(ref fv);
+                }
+            }
 
+            physicsWorld.RemoveBody(fixtureA.Body);
+            gameObjects.Remove((Rocket)fixtureA.Body);
+            s.Stop();
+            Console.WriteLine("Colloision handled: "  + s.ElapsedTicks);
+            Console.WriteLine("Number of objects effected: " + fixtures.Count);
             //foreach (Body body in physicsWorld.QueryAABB(new FarseerPhysics.Collision.AABB(fixtureA.Body.Position, )
             //{
             //    Vector2 vectorFromExplosion = body.Position - explosion.Position;
@@ -609,18 +684,111 @@ namespace RobotRampage
                 MediaPlayer.Play(backgroundMusic);
             }
         }
+
+        private Dictionary<Type, List<Vector2>> GetLevelDictFromGameObjects(List<IGameObject> gameObjects)
+        {
+            Dictionary<Type, List<Vector2>> objects = new Dictionary<Type, List<Vector2>>();
+            foreach (IGameObject obj in gameObjects)
+            {
+                if (obj is Body)
+                {
+                    Body b = obj as Body;
+                    if (b is Floor)
+                    {
+                        Floor f = b as Floor;
+                        if (objects.ContainsKey(f.GetType()))
+                            objects[f.GetType()].Add(b.Position);
+                        else
+                        {
+                            objects.Add(f.GetType(), new List<Vector2>());
+                            objects[f.GetType()].Add(b.Position);
+                        }
+                        
+                    }
+                    else if (b is Wall)
+                    {
+                        Wall w = b as Wall;
+                        if (objects.ContainsKey(w.GetType()))
+                            objects[w.GetType()].Add(b.Position);
+                        else
+                        {
+                            objects.Add(w.GetType(), new List<Vector2>());
+                            objects[w.GetType()].Add(b.Position);
+                        }
+                    }
+                    else if (b is Robot)
+                    {
+                        Robot r = b as Robot;
+                        if (objects.ContainsKey(r.GetType()))
+                            objects[r.GetType()].Add(b.Position);
+                        else
+                        {
+                            objects.Add(r.GetType(), new List<Vector2>());
+                            objects[r.GetType()].Add(b.Position);
+                        };
+                    }
+                    else if (b is SuicideRobot)
+                    {
+                        SuicideRobot sr = b as SuicideRobot;
+                        if (objects.ContainsKey(sr.GetType()))
+                            objects[sr.GetType()].Add(b.Position);
+                        else
+                        {
+                            objects.Add(sr.GetType(), new List<Vector2>());
+                            objects[sr.GetType()].Add(b.Position);
+                        }
+                    }
+
+                }
+            }
+
+            return objects;
+        }
+
+        private void CreateGameObjectsFromLevel(Dictionary<Type, List<Vector2>> dictionary)
+        {
+            foreach (KeyValuePair<Type, List<Vector2>> kvp in dictionary)
+            {
+                if (kvp.Key == typeof(Floor))
+                {
+                    foreach(Vector2 pos in kvp.Value)
+                        CreateFloor(pos);
+                }
+                else if (kvp.Key == typeof(Wall))
+                {
+                    foreach (Vector2 pos in kvp.Value)
+                        CreateWall(pos);
+                }
+                else if (kvp.Key == typeof(Robot))
+                {
+                    foreach (Vector2 pos in kvp.Value)
+                        CreateRobot(pos);
+                }
+                else if (kvp.Key == typeof(SuicideRobot))
+                {
+                    foreach (Vector2 pos in kvp.Value)
+                        CreateSuicideRobot(pos);
+                }
+            }
+        }
         #endregion
 
         #region State transitions
         public void GoToMainMenu()
         {
+            gameCamera.Position = ConvertUnits.ToSimUnits(0f, 0f);
+            CameraOffset = gameCamera.Position;
             State = GameState.MAIN_MENU;
             IsMouseVisible = true;
+            TryPlay(menuMusic);
         }
 
         public void StartGame()
         {
             State = GameState.LEVEL;
+            currentLevel = 0;
+            MediaPlayer.Stop();
+            singlePlayerLevels[currentLevel].PlayMusic();
             IsMouseVisible = false;
         }
 

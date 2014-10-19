@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Media;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,21 +9,23 @@ namespace RobotRampage
 {
     public class Level
     {
-        public List<IGameObject> Objects { get; set; }
+        public Dictionary<Type, List<Vector2>> Objects { get; set; }
         public string Name { get; set; }
         public SpawnPoint Spawn { get; set; }
 
+        Song levelMusic;
 
         public Level(string fileName)
         {
             Parse(fileName);
         }
 
-        public Level(List<IGameObject> objs, SpawnPoint sp, string n)
+        public Level(Dictionary<Type, List<Vector2>> objs, SpawnPoint sp, Song s, string n)
         {
             Objects = objs;
             Name = n;
             Spawn = sp;
+            levelMusic = s;
         }
 
         /// <summary>
@@ -40,6 +43,18 @@ namespace RobotRampage
         private void Parse(string fileName)
         {
             throw new NotImplementedException();
+        }
+
+        public void PlayMusic()
+        {
+            try
+            {
+                MediaPlayer.Play(levelMusic);
+            }
+            catch (Exception)
+            {
+                MediaPlayer.Play(levelMusic);
+            }
         }
     }
 }

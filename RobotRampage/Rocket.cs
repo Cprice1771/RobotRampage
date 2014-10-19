@@ -1,4 +1,6 @@
 ﻿using FarseerPhysics;
+using FarseerPhysics.Collision.Shapes;
+using FarseerPhysics.Common;
 using FarseerPhysics.Dynamics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -25,6 +27,11 @@ namespace RobotRampage
             parent = game;
             srcRect = new Rectangle(0, 0, texture.Width, texture.Height);
             Damage = d;
+            this.CreateFixture(new PolygonShape(PolygonTools.CreateRectangle(ConvertUnits.ToSimUnits(t.Width / 2), ConvertUnits.ToSimUnits(t.Height / 2)), 1.0f));
+            this.BodyType = BodyType.Dynamic;
+            this.Restitution = 0.3f;
+            this.Friction = 1.0f;
+            this.IgnoreGravity = true;
         }
 
         public void Update(Microsoft.Xna.Framework.GameTime gameTime)
@@ -34,7 +41,7 @@ namespace RobotRampage
         public void Draw(Microsoft.Xna.Framework.Graphics.SpriteBatch sb)
         {
             Vector2 offset = new Vector2(ConvertUnits.ToDisplayUnits(Position.X) - texture.Width / 2, ConvertUnits.ToDisplayUnits(Position.Y) - texture.Height / 2);
-            sb.Draw(this.texture, offset, srcRect, Color.White, Rotation, new Vector2(0, 0), 1.0f, SpriteEffects.None, 1.0f);
+            sb.Draw(this.texture, offset, srcRect, Color.White, Rotation, new Vector2(texture.Width / 2, texture.Height / 2), 1.0f, SpriteEffects.None, 1.0f);
         }
 
         internal bool OffScreen()
