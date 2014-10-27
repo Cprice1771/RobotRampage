@@ -9,6 +9,7 @@ namespace RobotRampage
 {
     public interface IGameObject
     {
+        bool MarkedForRemoval {get; set;}
         void Update(GameTime gameTime);
         void Draw(SpriteBatch sb);
     }

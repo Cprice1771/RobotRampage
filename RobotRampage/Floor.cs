@@ -15,6 +15,7 @@ namespace RobotRampage
     {
         public float Width { get { return texture.Width; } }
         public float Height { get { return texture.Height; } }
+        public bool MarkedForRemoval { get; set; }
 
         Texture2D texture;
         MainGame parent;
@@ -31,6 +32,7 @@ namespace RobotRampage
             this.BodyType = BodyType.Static;
             this.Restitution = 0.0f;
             this.Friction = 0.6f;
+            this.MarkedForRemoval = false;
 
         }
 

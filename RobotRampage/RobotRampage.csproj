@@ -42,8 +42,8 @@
     <Compile Include="Floor.cs" />
     <Compile Include="Gun.cs" />
     <Compile Include="HUD.cs" />
-    <Compile Include="IGameObject.cs" />
-    <Compile Include="ILivingThing.cs" />
+    <Compile Include="Interfaces\IGameObject.cs" />
+    <Compile Include="Interfaces\ILivingThing.cs" />
     <Compile Include="Level.cs" />
     <Compile Include="MainGame.cs" />
     <Compile Include="MainMenu.cs" />

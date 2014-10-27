@@ -82,7 +82,6 @@ namespace RobotRampage
         Gun handGun;
         Gun shotGun;
         Gun RocketLauncher;
-        WinPoint winPoint;
         HUD hud;
         #endregion
         #endregion
@@ -130,7 +129,7 @@ namespace RobotRampage
             CreateWalls();
             CreatePlayer();
             CreateWalls();
-            CreateWinPoint();
+            CreateWinPoint(ConvertUnits.ToSimUnits(1500, 300));
             List<Level> levels = new List<Level>();
             Dictionary<Type, List<Vector2>> levelObjects = GetLevelDictFromGameObjects(gameObjects);
             Level level1 = new Level(levelObjects, new SpawnPoint(new Vector2(ConvertUnits.ToSimUnits(100), ConvertUnits.ToSimUnits(150)), spawnPointTexture), levelMusic, "Level 1");
@@ -324,10 +323,13 @@ namespace RobotRampage
 
         private void respawnPlayer()
         {
+            physicsWorld = new World(new Vector2(0.0f, 9.82f));
+            gameObjects = new List<IGameObject>();
             CreateGameObjectsFromLevel(singlePlayerLevels[currentLevel].Objects);
-            player.Position = singlePlayerLevels[currentLevel].Spawn.location;
-            player.LinearVelocity = Vector2.Zero;
-            player.Reset();
+            CreatePlayer();
+            //player.Position = singlePlayerLevels[currentLevel].Spawn.location;
+            //player.LinearVelocity = Vector2.Zero;
+            //player.Reset();
         }
 
         
@@ -350,7 +352,6 @@ namespace RobotRampage
                     foreach (IGameObject go in gameObjects)
                         go.Draw(spriteBatch);
 
-                    winPoint.Draw(spriteBatch);
                     player.Draw(spriteBatch);
                     hud.Draw(spriteBatch);
                     crosshair.Draw(spriteBatch);
@@ -380,11 +381,12 @@ namespace RobotRampage
             
         }
 
-        private void CreateWinPoint()
+        private void CreateWinPoint(Vector2 pos)
         {
-            winPoint = new WinPoint(winPointTexture, physicsWorld);
+            WinPoint winPoint = new WinPoint(winPointTexture, physicsWorld);
             winPoint.OnCollision += new OnCollisionEventHandler(WinPoint_OnCollision);
-            winPoint.Position = ConvertUnits.ToSimUnits(1500, 300);
+            winPoint.Position = pos;
+            gameObjects.Add(winPoint);
         }
 
         private void CreateFloor(Vector2 pos)
@@ -586,9 +588,9 @@ namespace RobotRampage
                     return true;
                 }
                 gameObjects = new List<IGameObject>();
-                ClearWorld();
-                CreateGameObjectsFromLevel(singlePlayerLevels[currentLevel].Objects);
-                singlePlayerLevels[currentLevel].PlayMusic();
+                //ClearWorld();
+                //CreateGameObjectsFromLevel(singlePlayerLevels[currentLevel].Objects);
+                //singlePlayerLevels[currentLevel].PlayMusic();
                 respawnPlayer();
             }
 
@@ -614,8 +616,9 @@ namespace RobotRampage
             if (fixtureB.Body is Rocket)
                 return false;
 
-            Stopwatch s = new Stopwatch();
-            s.Start();
+            //if (fixtureB.Body is Wall)
+                //return true;
+
             Vector2 bodyPos = fixtureA.Body.Position;
 
             Vector2 min = bodyPos - new Vector2(1, 1);
@@ -637,16 +640,19 @@ namespace RobotRampage
                 {
                     Vector2 fv = f.Body.Position - bodyPos;
                     //fv.Normalize();
-                    fv *= 10;
+                    fv *= 5;
                     f.Body.ApplyLinearImpulse(ref fv);
                 }
             }
 
-            physicsWorld.RemoveBody(fixtureA.Body);
-            gameObjects.Remove((Rocket)fixtureA.Body);
-            s.Stop();
-            Console.WriteLine("Colloision handled: "  + s.ElapsedTicks);
-            Console.WriteLine("Number of objects effected: " + fixtures.Count);
+            IGameObject obj = fixtureA.Body as IGameObject;
+            if (!obj.MarkedForRemoval)
+            {
+                obj.MarkedForRemoval = true;
+                physicsWorld.RemoveBody(fixtureA.Body);
+                gameObjects.Remove((Rocket)fixtureA.Body);
+            }
+
             //foreach (Body body in physicsWorld.QueryAABB(new FarseerPhysics.Collision.AABB(fixtureA.Body.Position, )
             //{
             //    Vector2 vectorFromExplosion = body.Position - explosion.Position;
@@ -738,6 +744,17 @@ namespace RobotRampage
                             objects[sr.GetType()].Add(b.Position);
                         }
                     }
+                    else if (b is WinPoint)
+                    {
+                        WinPoint wp = b as WinPoint;
+                        if (objects.ContainsKey(wp.GetType()))
+                            objects[wp.GetType()].Add(b.Position);
+                        else
+                        {
+                            objects.Add(wp.GetType(), new List<Vector2>());
+                            objects[wp.GetType()].Add(b.Position);
+                        }
+                    }
 
                 }
             }
@@ -768,6 +785,11 @@ namespace RobotRampage
                 {
                     foreach (Vector2 pos in kvp.Value)
                         CreateSuicideRobot(pos);
+                }
+                else if(kvp.Key == typeof(WinPoint))
+                {
+                    foreach (Vector2 pos in kvp.Value)
+                        CreateWinPoint(pos);
                 }
             }
         }

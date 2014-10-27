@@ -13,6 +13,8 @@ namespace RobotRampage
 {
     public class Robot : Body, IGameObject, ILivingThing
     {
+        public bool MarkedForRemoval { get; set; }
+
         Texture2D texture;
         Rectangle srcRect;
         Rectangle destRect;
@@ -44,6 +46,7 @@ namespace RobotRampage
             this.Restitution = 0.3f;
             this.Friction = 1.0f;
             this.IgnoreGravity = true;
+            this.MarkedForRemoval = false;
         }
 
         public void Update(Microsoft.Xna.Framework.GameTime gameTime)

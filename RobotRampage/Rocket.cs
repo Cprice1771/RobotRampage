@@ -19,6 +19,7 @@ namespace RobotRampage
         MainGame parent;
         Rectangle srcRect;
         public Vector2 rotation { get; set; }
+        public bool MarkedForRemoval { get; set; }
 
         public Rocket(Texture2D t, MainGame game, int d, World w)
             : base(w)
@@ -32,6 +33,7 @@ namespace RobotRampage
             this.Restitution = 0.3f;
             this.Friction = 1.0f;
             this.IgnoreGravity = true;
+            this.MarkedForRemoval = false;
         }
 
         public void Update(Microsoft.Xna.Framework.GameTime gameTime)

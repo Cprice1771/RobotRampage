@@ -10,6 +10,8 @@ namespace RobotRampage
 {
     public class Crosshair : IGameObject
     {
+        public bool MarkedForRemoval { get; set; }
+
         Vector2 position;
         Texture2D texture;
         MainGame parent;
@@ -21,6 +23,7 @@ namespace RobotRampage
             position = pos;
             parent = game;
             srcRect = new Rectangle(0, 0, texture.Width, texture.Height);
+            this.MarkedForRemoval = false;
         }
 
         public void Update(Microsoft.Xna.Framework.GameTime gameTime)

@@ -15,6 +15,7 @@ namespace RobotRampage
     public class Bullet : Body, IGameObject
     {
         public int Damage { get; private set; }
+        public bool MarkedForRemoval { get; set; }
 
         Texture2D texture;
         MainGame parent;
@@ -33,6 +34,7 @@ namespace RobotRampage
             this.Restitution = 0.3f;
             this.Friction = 1.0f;
             this.IgnoreGravity = true;
+            this.MarkedForRemoval = false;
         }
 
         
@@ -57,5 +59,7 @@ namespace RobotRampage
 
             return false;
         }
+
+        
     }
 }

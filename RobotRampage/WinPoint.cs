@@ -14,6 +14,8 @@ namespace RobotRampage
     public class WinPoint : Body, IGameObject
     {
         Texture2D texture;
+        public bool MarkedForRemoval { get; set; }
+
 
         public WinPoint(Texture2D text, World w)
             :base(w)
@@ -24,6 +26,7 @@ namespace RobotRampage
             this.FixedRotation = true;
             this.Restitution = 0.0f;
             this.Friction = 1.0f;
+            this.MarkedForRemoval = false;
         }
 
         public void Update(GameTime gameTime)

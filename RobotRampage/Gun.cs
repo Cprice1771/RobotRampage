@@ -19,6 +19,7 @@ namespace RobotRampage
         public int LoadedAmmo { get; set; }
         public float Width { get { return Texture.Width; } }
         public float Height { get { return Texture.Height; } }
+        public bool MarkedForRemoval { get; set; }
         #endregion
 
         #region Private members
@@ -93,6 +94,7 @@ namespace RobotRampage
             lastFire = -1.0;
             reloadTime = 0.0;
             shoot = cp;
+            this.MarkedForRemoval = false;
         }
 
         public void Update(Microsoft.Xna.Framework.GameTime gameTime)

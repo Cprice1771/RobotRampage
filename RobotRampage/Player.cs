@@ -22,7 +22,7 @@ namespace RobotRampage
         PlayerDirection direction;
         public List<Gun> Inventory { get; private set; }
 
-
+        public bool MarkedForRemoval { get; set; }
         public GunSelected EquipedWeaponSlot { get; set; }
         public int Health { get; private set; }
         public Gun EquipedWeapon { get; set; }
@@ -54,6 +54,7 @@ namespace RobotRampage
             this.FixedRotation = true;
             this.Restitution = 0.0f;
             this.Friction = 1.0f;
+            this.MarkedForRemoval = true;
         }
 
         public void Update(Microsoft.Xna.Framework.GameTime gameTime)

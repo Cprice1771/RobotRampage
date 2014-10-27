@@ -15,6 +15,7 @@ namespace RobotRampage
         public int AmmoLoaded { get; set; }
         public int AmmoReserve { get; set; }
         public bool Reloading { get; set; }
+        public bool MarkedForRemoval { get; set; }
         Texture2D hudTexture;
         MainGame parent;
         SpriteFont font;
@@ -35,6 +36,7 @@ namespace RobotRampage
             Health = 100;
             AmmoLoaded = 30;
             AmmoReserve = 150;
+            MarkedForRemoval = true;
         }
 
         public void Update(GameTime gameTime)

@@ -13,6 +13,8 @@ namespace RobotRampage
 {
     public class SuicideRobot : Body, IGameObject, ILivingThing
     {
+        public bool MarkedForRemoval { get; set; }
+
         Texture2D texture;
         Texture2D emssionSpriteSheet;
         Rectangle srcRect;
@@ -46,6 +48,7 @@ namespace RobotRampage
             myWorld = w;
             this.IgnoreGravity = true;
             emssionSpriteSheet = et;
+            this.MarkedForRemoval = true;
         }
 
         public void Update(Microsoft.Xna.Framework.GameTime gameTime)
