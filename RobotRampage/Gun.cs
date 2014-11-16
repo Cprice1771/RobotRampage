@@ -130,12 +130,12 @@ namespace RobotRampage
             if(Direction == PlayerDirection.RIGHT)
             {
                 offset = new Vector2(position.X + 10, position.Y);
-                sb.Draw(this.Texture, offset, srcRect, Color.White, Rotation, new Vector2(Texture.Width, Texture.Height / 2), 1.0f, SpriteEffects.FlipVertically | SpriteEffects.FlipHorizontally, 1.0f);
+                sb.Draw(this.Texture, offset, srcRect, Color.White, Rotation, new Vector2(Texture.Width, Texture.Height / 2), 1.0f, SpriteEffects.FlipVertically, 1.0f);
             }
             else
             {
                 offset = new Vector2(position.X - 100, position.Y);
-                sb.Draw(this.Texture, position, srcRect, Color.White, Rotation, new Vector2(Texture.Width, Texture.Height / 2), 1.0f, SpriteEffects.FlipHorizontally, 1.0f);
+                sb.Draw(this.Texture, position, srcRect, Color.White, Rotation, new Vector2(Texture.Width, Texture.Height / 2), 1.0f, SpriteEffects.None, 1.0f);
             }
         }
 

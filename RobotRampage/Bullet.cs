@@ -46,7 +46,7 @@ namespace RobotRampage
         public void Draw(Microsoft.Xna.Framework.Graphics.SpriteBatch sb)
         {
             Vector2 offset = new Vector2(ConvertUnits.ToDisplayUnits(Position.X) - texture.Width / 2, ConvertUnits.ToDisplayUnits(Position.Y) - texture.Height / 2);
-            sb.Draw(this.texture, offset, srcRect, Color.White, Rotation, new Vector2(texture.Width, texture.Height), 1.0f, SpriteEffects.None, 1.0f);
+            sb.Draw(this.texture, offset, srcRect, Color.White, Rotation, new Vector2(texture.Width, texture.Height), 1.0f, SpriteEffects.FlipHorizontally, 1.0f);
         }
 
 

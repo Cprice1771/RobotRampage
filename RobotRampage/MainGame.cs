@@ -16,6 +16,7 @@ using Microsoft.Xna.Framework.Media;
 using FarseerPhysics.Dynamics.Contacts;
 using FarseerPhysics.Collision;
 using System.Diagnostics;
+using MediaPlayerHelper;
 #endregion
 
 namespace RobotRampage
@@ -26,9 +27,9 @@ namespace RobotRampage
     public class MainGame : Game
     {
         #region constants
-        const int X_CAMERA_THRESHOLD = 200;
-        public const int ScreenWidth = 1024;
-        public const int ScreenHeight = 768;
+        const int X_CAMERA_THRESHOLD = 500;
+        public const int ScreenWidth = 1280;
+        public const int ScreenHeight = 800;
         #endregion
 
 
@@ -44,13 +45,15 @@ namespace RobotRampage
         SpriteBatch spriteBatch;
 
         SpriteFont font;
-        Song levelMusic;
-        Song menuMusic;
+        SongFile levelMusic;
+        SongFile menuMusic;
         World physicsWorld;
         int mouseWheelLoc;
         List<Level> singlePlayerLevels;
         int currentLevel;
         MainMenu menu;
+        string contentPath;
+        MediaPlayerHelper.MediaPlayerHelper mediaPlayer;
 
         #region Textures
         Texture2D playerSpriteSheet;
@@ -72,6 +75,8 @@ namespace RobotRampage
         Texture2D spawnPointTexture;
         Texture2D handGunTexture;
         Texture2D shotGunTexture;
+        Texture2D RobotSpriteSheet;
+        Texture2D rocketLauncherTexture;
         #endregion
 
         #region world objects
@@ -83,6 +88,7 @@ namespace RobotRampage
         Gun shotGun;
         Gun RocketLauncher;
         HUD hud;
+        Color _backgroundColor;
         #endregion
         #endregion
 
@@ -115,10 +121,11 @@ namespace RobotRampage
             
             hud = new HUD(hudTexture, player.Inventory, player.EquipedWeaponSlot, new Vector2(0, 0), font, this);
             gameCamera = new Camera();
-            MediaPlayer.Volume = 1.0f;
+            mediaPlayer = MediaPlayerHelper.MediaPlayerHelper.Instance;
+            mediaPlayer.Loop = true;
+            mediaPlayer.Play(menuMusic);
             IsMouseVisible = true;
-            MediaPlayer.IsRepeating = true;
-            TryPlay(menuMusic);
+            _backgroundColor = Color.Black;
         }
 
         private List<Level> CreateLevels()
@@ -128,7 +135,6 @@ namespace RobotRampage
             CreateFloors();
             CreateWalls();
             CreatePlayer();
-            CreateWalls();
             CreateWinPoint(ConvertUnits.ToSimUnits(1500, 300));
             List<Level> levels = new List<Level>();
             Dictionary<Type, List<Vector2>> levelObjects = GetLevelDictFromGameObjects(gameObjects);
@@ -154,9 +160,10 @@ namespace RobotRampage
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
             LoadTextures();
+            contentPath = System.IO.Path.Combine(Environment.CurrentDirectory + "\\Content");
 
-            levelMusic = Content.Load<Song>("FailingDefense");
-            menuMusic = Content.Load<Song>("In a Heartbeat");
+            levelMusic = new SongFile(System.IO.Path.Combine(contentPath + "\\FailingDefense.wma"));
+            menuMusic = new SongFile(System.IO.Path.Combine(contentPath + "\\In a Heartbeat.mp3"));
             //TODO: uncomment for music
             //TryPlay(backgroundMusic);
 
@@ -203,6 +210,8 @@ namespace RobotRampage
             OptionsMenuTexture = Content.Load<Texture2D>("Options");
             handGunTexture = Content.Load<Texture2D>("handgun");
             shotGunTexture = Content.Load<Texture2D>("shotgun");
+            RobotSpriteSheet = Content.Load<Texture2D>("RobotSpriteSheet");
+            rocketLauncherTexture = Content.Load<Texture2D>("RocketLauncher");
         }
         #endregion
 
@@ -342,7 +351,7 @@ namespace RobotRampage
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(_backgroundColor);
             var viewMaxtrix = gameCamera.GetTransform();
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied,
                                     null, null, null, null, viewMaxtrix * Matrix.CreateScale(GetScreenScale()));
@@ -374,6 +383,10 @@ namespace RobotRampage
         {
             player = new Player(playerSpriteSheet, this, physicsWorld);
             player.Position = ConvertUnits.ToSimUnits(100, 150);
+            assualtRifle = new Gun(defaultGunTexture, player.Position, this, 25, 30, 5.0f, 100, 100.0, 1000.0, CreateBullet);
+            shotGun = new Gun(shotGunTexture, player.Position, this, 50, 15, 5.0f, 20, 1000.0, 1500.0, CreateShotgunBullet);
+            handGun = new Gun(handGunTexture, player.Position, this, 40, 10, 5.0f, 200, 500.0, 800.0, CreateBullet);
+            RocketLauncher = new Gun(rocketLauncherTexture, player.Position, this, 100, 4, 5.0f, 20, 1000.0, 1500.0, CreateRocket);
             player.GiveGun(RocketLauncher);
             //player.GiveGun(handGun);
             player.GiveGun(shotGun);
@@ -401,8 +414,8 @@ namespace RobotRampage
             for (int i = 0; i < 5; i++)
             {
                 Floor f = new Floor(floorTexture, this, physicsWorld);
-                
-                f.Position = ConvertUnits.ToSimUnits((ScreenWidth / 2) + (i * floorTexture.Width) - 100, ScreenHeight - 10);
+
+                f.Position = ConvertUnits.ToSimUnits((floorTexture.Width / 2) + (i * floorTexture.Width), ScreenHeight - 10);
                 gameObjects.Add(f);
             }
 
@@ -479,14 +492,14 @@ namespace RobotRampage
             Random r = new Random();
             for (int i = 0; i < 8; i++)
             {
-                Robot robot = new Robot(robotTexture, this, physicsWorld);
+                Robot robot = new Robot(RobotSpriteSheet, this, physicsWorld);
                 robot.Position = ConvertUnits.ToSimUnits(((i + 1) * 400) + r.NextDouble() * 200, 100 + r.NextDouble() * 200);
                 gameObjects.Add(robot);
             }
 
             for (int i = 0; i < 8; i++)
             {
-                SuicideRobot robot = new SuicideRobot(suicideRobotTexture, emissionSpriteSheet, this, physicsWorld);
+                SuicideRobot robot = new SuicideRobot(RobotSpriteSheet, emissionSpriteSheet, this, physicsWorld);
                 robot.Position = ConvertUnits.ToSimUnits(((i + 1) * 500) + r.NextDouble() * 200, 400 + r.NextDouble() * 100);
                 robot.OnCollision += new OnCollisionEventHandler(SuicideRobot_OnCollision);
                 gameObjects.Add(robot);
@@ -495,14 +508,14 @@ namespace RobotRampage
 
         internal void CreateRobot(Vector2 pos)
         {
-            Robot robot = new Robot(robotTexture, this, physicsWorld);
+            Robot robot = new Robot(RobotSpriteSheet, this, physicsWorld);
             robot.Position = pos;
             gameObjects.Add(robot);
         }
 
         internal void CreateSuicideRobot(Vector2 pos)
         {
-            SuicideRobot robot = new SuicideRobot(suicideRobotTexture, emissionSpriteSheet, this, physicsWorld);
+            SuicideRobot robot = new SuicideRobot(RobotSpriteSheet, emissionSpriteSheet, this, physicsWorld);
             robot.Position = pos;
             robot.OnCollision += new OnCollisionEventHandler(SuicideRobot_OnCollision);
             gameObjects.Add(robot);
@@ -586,6 +599,10 @@ namespace RobotRampage
                 {
                     GoToMainMenu();
                     return true;
+                }
+                else //Play the next level music
+                {
+                    mediaPlayer.Play(singlePlayerLevels[currentLevel].LevelMusic);
                 }
                 gameObjects = new List<IGameObject>();
                 //ClearWorld();
@@ -802,22 +819,26 @@ namespace RobotRampage
             CameraOffset = gameCamera.Position;
             State = GameState.MAIN_MENU;
             IsMouseVisible = true;
-            TryPlay(menuMusic);
+            mediaPlayer.Play(menuMusic);
+            _backgroundColor = Color.Black;
         }
 
         public void StartGame()
         {
-            State = GameState.LEVEL;
             currentLevel = 0;
-            MediaPlayer.Stop();
-            singlePlayerLevels[currentLevel].PlayMusic();
+            gameObjects = new List<IGameObject>();
+            respawnPlayer();
+            State = GameState.LEVEL;
+            mediaPlayer.Play(singlePlayerLevels[currentLevel].LevelMusic);
             IsMouseVisible = false;
+            _backgroundColor = Color.SlateGray;
         }
 
         internal void GoToOptionsMenu()
         {
             State = GameState.OPTIONS_MENU;
             IsMouseVisible = true;
+            _backgroundColor = Color.White;
         }
         #endregion
 

@@ -32,4 +32,10 @@ namespace RobotRampage
         OPTIONS_MENU,
         LEVEL
     }
+
+    public enum RobotState : int
+    {
+        IDLE,
+        AGGRESIVE
+    }
 }

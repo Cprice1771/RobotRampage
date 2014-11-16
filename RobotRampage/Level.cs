@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using MediaPlayerHelper;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Media;
 using System;
 using System.Collections.Generic;
@@ -13,19 +14,19 @@ namespace RobotRampage
         public string Name { get; set; }
         public SpawnPoint Spawn { get; set; }
 
-        Song levelMusic;
+        public SongFile LevelMusic { get; set; }
 
         public Level(string fileName)
         {
             Parse(fileName);
         }
 
-        public Level(Dictionary<Type, List<Vector2>> objs, SpawnPoint sp, Song s, string n)
+        public Level(Dictionary<Type, List<Vector2>> objs, SpawnPoint sp, SongFile s, string n)
         {
             Objects = objs;
             Name = n;
             Spawn = sp;
-            levelMusic = s;
+            LevelMusic = s;
         }
 
         /// <summary>
@@ -45,16 +46,5 @@ namespace RobotRampage
             throw new NotImplementedException();
         }
 
-        public void PlayMusic()
-        {
-            try
-            {
-                MediaPlayer.Play(levelMusic);
-            }
-            catch (Exception)
-            {
-                MediaPlayer.Play(levelMusic);
-            }
-        }
     }
 }

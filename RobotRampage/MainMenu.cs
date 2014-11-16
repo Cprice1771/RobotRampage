@@ -25,9 +25,9 @@ namespace RobotRampage
             playGame = pg;
             options = op;
             parent = mg;
-            titleRect =  new Rectangle((MainGame.ScreenWidth / 2) - title.Width / 2, MainGame.ScreenHeight / 3, title.Width, title.Height);
-            playGameRect = new Rectangle(MainGame.ScreenWidth / 2 - playGame.Width / 2, (int)(1.5f * MainGame.ScreenHeight / 3), playGame.Width, playGame.Height);
-            optionsRect = new Rectangle(MainGame.ScreenWidth / 2 - options.Width / 2, 2 * MainGame.ScreenHeight / 3, options.Width, options.Height);
+            titleRect =  new Rectangle((MainGame.ScreenWidth / 2) - title.Width / 2, 75, title.Width, title.Height);
+            playGameRect = new Rectangle(MainGame.ScreenWidth / 2 - playGame.Width / 2, (int)(1.9f * MainGame.ScreenHeight / 3), playGame.Width, playGame.Height);
+            optionsRect = new Rectangle(MainGame.ScreenWidth / 2 - options.Width / 2, (int)(2.2f * MainGame.ScreenHeight / 3), options.Width, options.Height);
         }
 
         public void Update(GameTime gameTime)
@@ -44,8 +44,8 @@ namespace RobotRampage
         public void Draw(SpriteBatch sb)
         {
             sb.Draw(title,titleRect, Color.White);
-            sb.Draw(playGame, playGameRect, Color.White);
-            sb.Draw(options, optionsRect, Color.White);
+            sb.Draw(playGame, playGameRect, Color.Red);
+            sb.Draw(options, optionsRect, Color.Red);
         }
     }
 }
