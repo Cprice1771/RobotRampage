@@ -39,8 +39,10 @@
     <Compile Include="Camera.cs" />
     <Compile Include="Crosshair.cs" />
     <Compile Include="enums.cs" />
+    <Compile Include="Explosion.cs" />
     <Compile Include="Floor.cs" />
     <Compile Include="Gun.cs" />
+    <Compile Include="HealthBar.cs" />
     <Compile Include="HUD.cs" />
     <Compile Include="Interfaces\IGameObject.cs" />
     <Compile Include="Interfaces\ILivingThing.cs" />
@@ -53,6 +55,7 @@
     <Compile Include="Robot.cs" />
     <Compile Include="Rocket.cs" />
     <Compile Include="SpawnPoint.cs" />
+    <Compile Include="Spikes.cs" />
     <Compile Include="SuicideRobot.cs" />
     <Compile Include="Wall.cs" />
     <Compile Include="WinPoint.cs" />
@@ -71,7 +74,16 @@
     <Content Include="Content\crosshair.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Content\death.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Content\emissionSpriteSheet.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\explosion.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\ExplosionSpriteSheet.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\FailingDefense.wma">
@@ -86,6 +98,9 @@
     <Content Include="Content\handgun.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Content\hpBars.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Content\HUD.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -93,6 +108,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\In a Heartbeat.wma">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\jump.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\laser.png">
@@ -125,6 +143,9 @@
     <Content Include="Content\SpawnPoint.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Content\spikes.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Content\suicideRobot.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -144,6 +165,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Content\In a Heartbeat.xnb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Level_1.map">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Content\myFont.spritefont">

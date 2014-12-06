@@ -90,7 +90,7 @@ namespace RobotRampage
             float x = (Position.X - parent.GetPlayerLocation().X);
             float y = (Position.Y - parent.GetPlayerLocation().Y);
             Vector2 laserLoc = new Vector2(Position.X, Position.Y + ConvertUnits.ToSimUnits(height / 2));
-            parent.CreateLaser(10, (float)Math.Atan2(y, x), 5f, laserLoc);
+            parent.CreateLaser(10, (float)Math.Atan2(y, x), 10.0f, laserLoc);
         }
 
         public void Draw(Microsoft.Xna.Framework.Graphics.SpriteBatch sb)

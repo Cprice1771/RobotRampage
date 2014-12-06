@@ -144,8 +144,8 @@ namespace RobotRampage
             //If we can shoot
             if (!Reloading && LoadedAmmo > 0)
             {
-                float x = position.X - (float)(Math.Cos(Rotation) * (Width + 5));
-                float y = position.Y - (float)(Math.Sin(Rotation) * (Width + 5));
+                //float x = position.X - (float)(Math.Cos(Rotation) * (Width / 2));
+                //float y = position.Y - (float)(Math.Sin(Rotation) * (Width /2));
                 //parent.CreateBullet();
                 //parent.CreateRocket(damage, Rotation, muzzleVelocity);
                 shoot(damage, Rotation, muzzleVelocity);
@@ -160,21 +160,22 @@ namespace RobotRampage
             if (magazineSize == LoadedAmmo)
                 return;
 
+            //I dont wanna add ammo packs so infinite ammo!
             //If we have more than a magazine
-            if (ReserveAmmo - magazineSize > 0)
-            {
+            //if (ReserveAmmo - magazineSize > 0)
+            //{
                 Reloading = true;
-                ReserveAmmo -= magazineSize - LoadedAmmo;
+                //ReserveAmmo -= magazineSize - LoadedAmmo;
                 LoadedAmmo = magazineSize;
                 
-            }
-            //Else just set the loaded ammo to all we got
-            else if(ReserveAmmo > 0) 
-            {
-                Reloading = true;
-                LoadedAmmo = ReserveAmmo;
-                ReserveAmmo = 0;
-            }
+            //}
+            ////Else just set the loaded ammo to all we got
+            //else if(ReserveAmmo > 0) 
+            //{
+            //    Reloading = true;
+            //    LoadedAmmo = ReserveAmmo;
+            //    ReserveAmmo = 0;
+            //}
             //If we have no bullets do nothing
         }
 

@@ -73,12 +73,17 @@ namespace RobotRampage
             else
                 direction = PlayerDirection.LEFT;
 
-            //If on screen This is bad, should do within range of player?
-            if ((ConvertUnits.ToDisplayUnits(Position.Y) + parent.CameraOffset.Y) < MainGame.ScreenHeight && (ConvertUnits.ToDisplayUnits(Position.Y) + parent.CameraOffset.Y) > 0 &&
-                (ConvertUnits.ToDisplayUnits(Position.X) + parent.CameraOffset.X) < MainGame.ScreenWidth && (ConvertUnits.ToDisplayUnits(Position.X) + parent.CameraOffset.X) > 0)
+            //If on screen. This is bad, should do within range of player?
+            if ((ConvertUnits.ToDisplayUnits(Position.Y)) + parent.CameraOffset.Y < MainGame.ScreenHeight && (ConvertUnits.ToDisplayUnits(Position.Y)) + parent.CameraOffset.Y > 0 &&
+                (ConvertUnits.ToDisplayUnits(Position.X)) + parent.CameraOffset.X < MainGame.ScreenWidth && (ConvertUnits.ToDisplayUnits(Position.X)) + parent.CameraOffset.X > 0)
             {
                 RunAtPlayerPlayer();
                 state = RobotState.AGGRESIVE;
+            }
+            else
+            {
+                state = RobotState.IDLE;
+                LinearVelocity = new Vector2(0, 0);
             }
 
             timeCounter += gameTime.ElapsedGameTime.Milliseconds/1000.0f;

@@ -17,6 +17,7 @@ using FarseerPhysics.Dynamics.Contacts;
 using FarseerPhysics.Collision;
 using System.Diagnostics;
 using MediaPlayerHelper;
+using System.IO;
 #endregion
 
 namespace RobotRampage
@@ -45,8 +46,7 @@ namespace RobotRampage
         SpriteBatch spriteBatch;
 
         SpriteFont font;
-        SongFile levelMusic;
-        SongFile menuMusic;
+        
         World physicsWorld;
         int mouseWheelLoc;
         List<Level> singlePlayerLevels;
@@ -54,6 +54,14 @@ namespace RobotRampage
         MainMenu menu;
         string contentPath;
         MediaPlayerHelper.MediaPlayerHelper mediaPlayer;
+
+        #region Audio
+        SongFile levelMusic;
+        SongFile menuMusic;
+        SongFile deathEffect;
+        SongFile explosionEffect;
+        SongFile JumpEffect;
+        #endregion
 
         #region Textures
         Texture2D playerSpriteSheet;
@@ -68,7 +76,6 @@ namespace RobotRampage
         Texture2D wallTexture;
         Texture2D winPointTexture;
         Texture2D rocketTexture;
-        Texture2D hudTexture;
         Texture2D Title;
         Texture2D PlayGameTexture;
         Texture2D OptionsMenuTexture;
@@ -77,6 +84,9 @@ namespace RobotRampage
         Texture2D shotGunTexture;
         Texture2D RobotSpriteSheet;
         Texture2D rocketLauncherTexture;
+        Texture2D ExplosionSpriteSheet;
+        Texture2D SpikeTexture;
+        Texture2D healthTextureSheet;
         #endregion
 
         #region world objects
@@ -90,6 +100,7 @@ namespace RobotRampage
         HUD hud;
         Color _backgroundColor;
         #endregion
+
         #endregion
 
         #region Constructor
@@ -117,16 +128,19 @@ namespace RobotRampage
             State = GameState.MAIN_MENU;
             menu = new MainMenu(Title, PlayGameTexture, OptionsMenuTexture, this);
             currentLevel = 0;
-            singlePlayerLevels = CreateLevels();
-            
-            hud = new HUD(hudTexture, player.Inventory, player.EquipedWeaponSlot, new Vector2(0, 0), font, this);
+            //singlePlayerLevels = CreateLevels();
+            singlePlayerLevels = new List<Level>();
+            singlePlayerLevels = ReadInLevels();
+            CreatePlayer();
+            hud = new HUD(player.Inventory, player.EquipedWeaponSlot, new Vector2(0, 0), font, this, new HealthBar(healthTextureSheet, this));
             gameCamera = new Camera();
-            mediaPlayer = MediaPlayerHelper.MediaPlayerHelper.Instance;
-            mediaPlayer.Loop = true;
-            mediaPlayer.Play(menuMusic);
+            MediaPlayerHelper.MediaPlayerHelper.Instance.Loop = true;
+            //TODO uncomment
+            //MediaPlayerHelper.MediaPlayerHelper.Instance.Play(menuMusic);
             IsMouseVisible = true;
             _backgroundColor = Color.Black;
         }
+
 
         private List<Level> CreateLevels()
         {
@@ -134,15 +148,14 @@ namespace RobotRampage
             CreateEnemies();
             CreateFloors();
             CreateWalls();
-            CreatePlayer();
-            CreateWinPoint(ConvertUnits.ToSimUnits(1500, 300));
+            CreateWinPoint(ConvertUnits.ToSimUnits(1500, 700));
             List<Level> levels = new List<Level>();
             Dictionary<Type, List<Vector2>> levelObjects = GetLevelDictFromGameObjects(gameObjects);
-            Level level1 = new Level(levelObjects, new SpawnPoint(new Vector2(ConvertUnits.ToSimUnits(100), ConvertUnits.ToSimUnits(150)), spawnPointTexture), levelMusic, "Level 1");
+            Level level1 = new Level(levelObjects, new Vector2(ConvertUnits.ToSimUnits(150), ConvertUnits.ToSimUnits(700)), levelMusic, "Level 1");
             levels.Add(level1);
             Rocket r = new Rocket(rocketTexture, this, 50, physicsWorld);
             r.Position = ConvertUnits.ToSimUnits(100, 100);
-            Level level2 = new Level(levelObjects, new SpawnPoint(new Vector2(ConvertUnits.ToSimUnits(100), ConvertUnits.ToSimUnits(150)), spawnPointTexture), levelMusic, "Level 2");
+            Level level2 = new Level(levelObjects, new Vector2(ConvertUnits.ToSimUnits(150), ConvertUnits.ToSimUnits(700)), levelMusic, "Level 2");
             levels.Add(level2);
 
             return levels;
@@ -164,6 +177,9 @@ namespace RobotRampage
 
             levelMusic = new SongFile(System.IO.Path.Combine(contentPath + "\\FailingDefense.wma"));
             menuMusic = new SongFile(System.IO.Path.Combine(contentPath + "\\In a Heartbeat.mp3"));
+            deathEffect = new SongFile(System.IO.Path.Combine(contentPath + "\\death.wav"));
+            explosionEffect = new SongFile(System.IO.Path.Combine(contentPath + "\\explosion.wav"));
+            JumpEffect = new SongFile(System.IO.Path.Combine(contentPath + "\\jump.wav"));
             //TODO: uncomment for music
             //TryPlay(backgroundMusic);
 
@@ -203,7 +219,6 @@ namespace RobotRampage
             wallTexture = Content.Load<Texture2D>("wall");
             winPointTexture = Content.Load<Texture2D>("WinPoint");
             rocketTexture = Content.Load<Texture2D>("rocket.png");
-            hudTexture = Content.Load<Texture2D>("HUD.png");
             spawnPointTexture = Content.Load<Texture2D>("SpawnPoint");
             Title = Content.Load<Texture2D>("Title.png");
             PlayGameTexture = Content.Load<Texture2D>("PlayGame");
@@ -212,6 +227,9 @@ namespace RobotRampage
             shotGunTexture = Content.Load<Texture2D>("shotgun");
             RobotSpriteSheet = Content.Load<Texture2D>("RobotSpriteSheet");
             rocketLauncherTexture = Content.Load<Texture2D>("RocketLauncher");
+            ExplosionSpriteSheet = Content.Load<Texture2D>("ExplosionSpriteSheet");
+            SpikeTexture = Content.Load<Texture2D>("spikes");
+            healthTextureSheet = Content.Load<Texture2D>("hpBars");
         }
         #endregion
 
@@ -251,10 +269,10 @@ namespace RobotRampage
 
                     //Y movement
                     float playerY = ConvertUnits.ToDisplayUnits(player.Position.Y);
-                    //if (playerY > cam.Position.Y + 400 && cam.Position.Y > 0)
-                     //   cam.Move(new Vector2(0, -1 * (ConvertUnits.ToDisplayUnits(player.Position.Y) - (-1 * (cam.Position.Y) + 400))));
 
-                    if (playerY < gameCamera.Position.Y + Y_CAMERA_THRESHOLD + 100)
+                    if (playerY > gameCamera.Position.Y + 700 && gameCamera.Position.Y > 0)
+                        gameCamera.Move(new Vector2(0, -1 * (ConvertUnits.ToDisplayUnits(player.Position.Y) - (-1 * (gameCamera.Position.Y) + 400))));
+                    else if (playerY < gameCamera.Position.Y + Y_CAMERA_THRESHOLD + 100)
                         gameCamera.Move(new Vector2(0, -1 * (ConvertUnits.ToDisplayUnits(player.Position.Y) - (-1 * (gameCamera.Position.Y) + Y_CAMERA_THRESHOLD))));
            
                     CameraOffset = gameCamera.Position;
@@ -263,7 +281,10 @@ namespace RobotRampage
                     #region Keyboard inputs
                     //TODO: fix ground colloision detection
                     if (Keyboard.GetState().IsKeyDown(Keys.Space) && player.LinearVelocity.Y == 0)
+                    {
+                        MediaPlayerHelper.MediaPlayerHelper.Instance.PlaySound(JumpEffect);
                         player.ApplyForce(new Vector2(0, -200.0f));
+                    }
 
                     if (Keyboard.GetState().IsKeyDown(Keys.D) && player.LinearVelocity.X < 5.0f)
                         player.ApplyForce(new Vector2(20.0f, 0));
@@ -290,6 +311,12 @@ namespace RobotRampage
                             ILivingThing deadObject = gameObjects[i] as ILivingThing;
                             if (deadObject.Health <= 0)
                             {
+                                if(!(deadObject is Player))
+                                {
+                                    Body deadBody = deadObject as Body;
+                                    CreateExplosion(deadBody.Position);
+
+                                }
                                 physicsWorld.RemoveBody(deadObject as Body);
                                 gameObjects.RemoveAt(i);
                             }
@@ -303,9 +330,18 @@ namespace RobotRampage
                                 gameObjects.RemoveAt(i);
                             }
                         }
+                        else if (gameObjects[i] is Explosion)
+                        {
+                            Explosion explosion = gameObjects[i] as Explosion;
+                            if(!explosion.IsAlive)
+                                gameObjects.RemoveAt(i);
+                        }
                     }
                     if (player.Health <= 0)
+                    {
+                        MediaPlayerHelper.MediaPlayerHelper.Instance.PlaySound(deathEffect);
                         respawnPlayer();
+                    }
                     #endregion
 
                     #region Misc Updates
@@ -358,12 +394,15 @@ namespace RobotRampage
             switch (State)
             {
                 case GameState.LEVEL:
+                    //TODO: Maybe uncomment?
+                    //singlePlayerLevels[currentLevel].Spawn.Draw(spriteBatch);
                     foreach (IGameObject go in gameObjects)
                         go.Draw(spriteBatch);
 
                     player.Draw(spriteBatch);
                     hud.Draw(spriteBatch);
                     crosshair.Draw(spriteBatch);
+                    
                     break;
                 case GameState.MAIN_MENU:
                     menu.Draw(spriteBatch);
@@ -382,11 +421,12 @@ namespace RobotRampage
         private void CreatePlayer()
         {
             player = new Player(playerSpriteSheet, this, physicsWorld);
-            player.Position = ConvertUnits.ToSimUnits(100, 150);
-            assualtRifle = new Gun(defaultGunTexture, player.Position, this, 25, 30, 5.0f, 100, 100.0, 1000.0, CreateBullet);
-            shotGun = new Gun(shotGunTexture, player.Position, this, 50, 15, 5.0f, 20, 1000.0, 1500.0, CreateShotgunBullet);
-            handGun = new Gun(handGunTexture, player.Position, this, 40, 10, 5.0f, 200, 500.0, 800.0, CreateBullet);
-            RocketLauncher = new Gun(rocketLauncherTexture, player.Position, this, 100, 4, 5.0f, 20, 1000.0, 1500.0, CreateRocket);
+            //player.Position = new Vector2(singlePlayerLevels[currentLevel].Spawn.location.X + ConvertUnits.ToSimUnits(spawnPointTexture.Width / 2), singlePlayerLevels[currentLevel].Spawn.location.Y + ConvertUnits.ToSimUnits(spawnPointTexture.Height / 2));
+            player.Position = new Vector2(singlePlayerLevels[currentLevel].SpawnLocation.X, singlePlayerLevels[currentLevel].SpawnLocation.Y);
+            assualtRifle = new Gun(defaultGunTexture, player.Position, this, 25, 20, 7.0f, 40, 150.0, 1000.0, CreateBullet);
+            shotGun = new Gun(shotGunTexture, player.Position, this, 25, 5, 5.0f, 5, 1000.0, 1500.0, CreateShotgunBullet);
+            //handGun = new Gun(handGunTexture, player.Position, this, 40, 10, 5.0f, 200, 500.0, 800.0, CreateBullet);
+            RocketLauncher = new Gun(rocketLauncherTexture, player.Position, this, 100, 4, 7.0f, 4,500.0, 1500.0, CreateRocket);
             player.GiveGun(RocketLauncher);
             //player.GiveGun(handGun);
             player.GiveGun(shotGun);
@@ -400,6 +440,12 @@ namespace RobotRampage
             winPoint.OnCollision += new OnCollisionEventHandler(WinPoint_OnCollision);
             winPoint.Position = pos;
             gameObjects.Add(winPoint);
+        }
+
+        private void CreateSpawnPoint(Vector2 pos)
+        {
+            SpawnPoint spawnPoint = new SpawnPoint(pos, spawnPointTexture);
+            gameObjects.Add(spawnPoint);
         }
 
         private void CreateFloor(Vector2 pos)
@@ -531,12 +577,39 @@ namespace RobotRampage
             
             gameObjects.Add(bulletBody);
         }
+
+        internal void CreateSpike(Vector2 location)
+        {
+            Spikes spikeBody = new Spikes(SpikeTexture, this, physicsWorld);
+            spikeBody.Position = location;
+            spikeBody.OnCollision += new OnCollisionEventHandler(Spike_OnCollision);
+
+            gameObjects.Add(spikeBody);
+        }
+
+        private bool Spike_OnCollision(Fixture fixtureA, Fixture fixtureB, Contact contact)
+        {
+            if ((typeof(ILivingThing).IsAssignableFrom(fixtureB.Body.GetType())))
+            {
+                ILivingThing hitObject = fixtureB.Body as ILivingThing;
+                hitObject.DealDamage(100);    
+                return true;
+            }
+            return true;
+        }
+
+        private void CreateExplosion(Vector2 pos)
+        {
+            MediaPlayerHelper.MediaPlayerHelper.Instance.PlaySound(explosionEffect);
+            Explosion ex = new Explosion(ExplosionSpriteSheet, this, pos);
+            gameObjects.Add(ex);
+        }
         #endregion
 
         #region event handlers
         private bool Bullet_OnCollision(Fixture fixtureA, Fixture fixtureB, FarseerPhysics.Dynamics.Contacts.Contact contact)
         {
-            if (fixtureB.Body.GetType() == typeof(Bullet) || fixtureB.Body.GetType() == typeof(Rocket))
+            if (fixtureB.Body.GetType() == typeof(Bullet) || fixtureB.Body.GetType() == typeof(Rocket) || fixtureB.Body.GetType() == typeof(Player))
                 return false;
 
             if (fixtureA.Body.GetType() == typeof(Bullet) && gameObjects.Contains((Bullet)fixtureA.Body))
@@ -548,6 +621,8 @@ namespace RobotRampage
                     ILivingThing hitObject = fixtureB.Body as ILivingThing;
                     Bullet bull = fixtureA.Body as Bullet;
                     hitObject.DealDamage(bull.Damage);
+
+                    
                 }
                 return true;
             }
@@ -579,6 +654,7 @@ namespace RobotRampage
         {
             if (fixtureB.Body is Player)
             {
+                CreateExplosion(fixtureA.Body.Position);
                 physicsWorld.RemoveBody(fixtureA.Body);
                 gameObjects.Remove((SuicideRobot)fixtureA.Body);
                 Player hitObject = fixtureB.Body as Player;
@@ -602,7 +678,8 @@ namespace RobotRampage
                 }
                 else //Play the next level music
                 {
-                    mediaPlayer.Play(singlePlayerLevels[currentLevel].LevelMusic);
+                    //TODO uncomment
+                    //mediaPlayer.Play(singlePlayerLevels[currentLevel].LevelMusic);
                 }
                 gameObjects = new List<IGameObject>();
                 //ClearWorld();
@@ -624,13 +701,9 @@ namespace RobotRampage
 
         private bool Rocket_OnCollision(Fixture fixtureA, Fixture fixtureB, Contact contact)
         {
-            if (fixtureB.Body is Player)
-                return false;
+            IGameObject obj = fixtureA.Body as IGameObject;
 
-            if (fixtureB.Body is Bullet)
-                return false;
-
-            if (fixtureB.Body is Rocket)
+            if (fixtureB.Body.GetType() == typeof(Bullet) || fixtureB.Body.GetType() == typeof(Rocket) || fixtureB.Body.GetType() == typeof(Player) || obj.MarkedForRemoval)
                 return false;
 
             //if (fixtureB.Body is Wall)
@@ -656,19 +729,33 @@ namespace RobotRampage
                 if (!f.Body.IsStatic && f.Body.GetType() != typeof(Bullet) && f.Body.GetType() != typeof(Rocket))
                 {
                     Vector2 fv = f.Body.Position - bodyPos;
-                    //fv.Normalize();
+                    fv.Normalize();
+
+                    //if (fv.X > 0)
+                    //    fv.X = 1 - fv.X;
+                    //else
+                    //    fv.X = -1 - fv.X;
+
+                    //if (fv.Y > 0)
+                    //    fv.Y = 1 - fv.Y;
+                    //else
+                    //    fv.Y = -1 - fv.Y;
+
+
                     fv *= 5;
                     f.Body.ApplyLinearImpulse(ref fv);
                 }
             }
 
-            IGameObject obj = fixtureA.Body as IGameObject;
+            
             if (!obj.MarkedForRemoval)
             {
                 obj.MarkedForRemoval = true;
                 physicsWorld.RemoveBody(fixtureA.Body);
                 gameObjects.Remove((Rocket)fixtureA.Body);
             }
+
+            CreateExplosion(fixtureA.Body.Position);
 
             //foreach (Body body in physicsWorld.QueryAABB(new FarseerPhysics.Collision.AABB(fixtureA.Body.Position, )
             //{
@@ -685,10 +772,28 @@ namespace RobotRampage
             return false;
         }
 
+        
+
 
         #endregion
 
         #region private Helpers
+        private List<Level> ReadInLevels()
+        {
+            string[] levels = Directory.GetFiles(Directory.GetCurrentDirectory() + "\\content");
+            List<Level> tempLevels = new List<Level>();
+            foreach (string file in levels)
+            {
+                if(file.Contains(".map"))
+                {
+                    tempLevels.Add(new Level(file));
+                }
+
+            }
+
+            return tempLevels;
+        }
+
         private Vector3 GetScreenScale()
         {
             var scaleX = (float)GraphicsDevice.Viewport.Width / (float)ScreenWidth;
@@ -779,8 +884,12 @@ namespace RobotRampage
             return objects;
         }
 
+
         private void CreateGameObjectsFromLevel(Dictionary<Type, List<Vector2>> dictionary)
         {
+            //IMPORTANT
+            //Order matters here, the lower in the tree the object is the further towards the front of the screen it will be drawn
+            //IE. the first object has the lowest priority, last one has highest
             foreach (KeyValuePair<Type, List<Vector2>> kvp in dictionary)
             {
                 if (kvp.Key == typeof(Floor))
@@ -793,6 +902,21 @@ namespace RobotRampage
                     foreach (Vector2 pos in kvp.Value)
                         CreateWall(pos);
                 }
+                else if (kvp.Key == typeof(Spikes))
+                {
+                    foreach (Vector2 pos in kvp.Value)
+                        CreateSpike(pos);
+                }
+                else if (kvp.Key == typeof(WinPoint))
+                {
+                    foreach (Vector2 pos in kvp.Value)
+                        CreateWinPoint(pos);
+                }
+                else if (kvp.Key == typeof(SpawnPoint))
+                {
+                    foreach (Vector2 pos in kvp.Value)
+                        CreateSpawnPoint(pos);
+                }
                 else if (kvp.Key == typeof(Robot))
                 {
                     foreach (Vector2 pos in kvp.Value)
@@ -803,13 +927,12 @@ namespace RobotRampage
                     foreach (Vector2 pos in kvp.Value)
                         CreateSuicideRobot(pos);
                 }
-                else if(kvp.Key == typeof(WinPoint))
-                {
-                    foreach (Vector2 pos in kvp.Value)
-                        CreateWinPoint(pos);
-                }
+                
+                
             }
         }
+
+        
         #endregion
 
         #region State transitions
@@ -819,8 +942,11 @@ namespace RobotRampage
             CameraOffset = gameCamera.Position;
             State = GameState.MAIN_MENU;
             IsMouseVisible = true;
-            mediaPlayer.Play(menuMusic);
+            //TODO uncomment
+            //mediaPlayer.Play(menuMusic);
             _backgroundColor = Color.Black;
+
+            
         }
 
         public void StartGame()
@@ -829,9 +955,13 @@ namespace RobotRampage
             gameObjects = new List<IGameObject>();
             respawnPlayer();
             State = GameState.LEVEL;
-            mediaPlayer.Play(singlePlayerLevels[currentLevel].LevelMusic);
+            //TODO: unbcomment
+            //mediaPlayer.Play(singlePlayerLevels[currentLevel].LevelMusic);
             IsMouseVisible = false;
             _backgroundColor = Color.SlateGray;
+
+            //foreach (Level l in singlePlayerLevels)
+            //    l.Write();
         }
 
         internal void GoToOptionsMenu()
