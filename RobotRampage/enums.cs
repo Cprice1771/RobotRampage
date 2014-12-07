@@ -7,10 +7,9 @@ namespace RobotRampage
 {
     public enum PlayerState : int
     {
-        IDLE = 0,
-        WALKING = 1,
-        JUMPING = 2,
-        RUNNING = 3
+        JUMPING = 0,
+        IDLE = 1,
+        RUNNING = 2,
     }
 
     public enum PlayerDirection : int

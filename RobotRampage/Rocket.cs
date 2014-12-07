@@ -38,6 +38,15 @@ namespace RobotRampage
 
         public void Update(Microsoft.Xna.Framework.GameTime gameTime)
         {
+            timeCounter += gameTime.ElapsedGameTime.Milliseconds / 1000.0f;
+
+            if (timeCounter > .02167f)
+            {
+                timeCounter -= .02167f;
+
+                Vector2 rocketTailLocation = new Vector2(ConvertUnits.ToDisplayUnits(Position.X) - texture.Width / 2, ConvertUnits.ToDisplayUnits(Position.Y) - texture.Height / 2);
+                parent.CreateSmoke(rocketTailLocation);
+            }
         }
 
         public void Draw(Microsoft.Xna.Framework.Graphics.SpriteBatch sb)
@@ -54,5 +63,7 @@ namespace RobotRampage
 
             return false;
         }
+
+        public float timeCounter { get; set; }
     }
 }

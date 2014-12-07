@@ -14,21 +14,29 @@ namespace RobotRampage
 {
     public class Player : Body, IGameObject, ILivingThing
     {
+        const int FRAME_COUNT = 7;
+        const int FRAME_WIDTH = 60;
+        const int FRAME_SEPERATION = 0;
+        const int FRAME_HEIGHT = 105;
+        const int FRAME_HEIGHT_SPERATION = 0;
+
+        int frameCounter;
+        float timeCounter;
+
         Texture2D texture;
         Rectangle srcRect;
-        Rectangle destRect;
         MainGame parent;
-        PlayerState state;
         PlayerDirection direction;
-        public List<Gun> Inventory { get; private set; }
 
+        public PlayerState State { get; set; }
+        public List<Gun> Inventory { get; private set; }
         public bool MarkedForRemoval { get; set; }
         public GunSelected EquipedWeaponSlot { get; set; }
         public int Health { get; private set; }
         public Gun EquipedWeapon { get; set; }
-        public float Width { get { return texture.Width; } }
+        public float Width { get { return FRAME_WIDTH; } }
 
-        public float Height { get { return texture.Height; } }
+        public float Height { get { return FRAME_HEIGHT; } }
         
         
         const float WALK_SPEED = 0.8f;
@@ -40,16 +48,15 @@ namespace RobotRampage
             texture = t;
             parent = game;
 
-            state = PlayerState.IDLE;
+            State = PlayerState.IDLE;
             direction = PlayerDirection.RIGHT;
-            //frameCounter = 0;
-            //frameRate = 1.0f / 24.0f;
-            srcRect = new Rectangle(0, 0, texture.Width, texture.Height);
-            destRect = new Rectangle((int)Position.X, (int)Position.Y, 50, 50);
+            frameCounter = 0;
+            timeCounter = 0.0f;
+            srcRect = new Rectangle(0, 0, FRAME_WIDTH, FRAME_HEIGHT);
             Health = 100;
             Inventory = new List<Gun>();
             EquipedWeaponSlot = GunSelected.PRIMARY;
-            this.CreateFixture(new PolygonShape(PolygonTools.CreateRectangle(ConvertUnits.ToSimUnits(t.Width / 2), ConvertUnits.ToSimUnits(t.Height / 2)), 1.0f));
+            this.CreateFixture(new PolygonShape(PolygonTools.CreateRectangle(ConvertUnits.ToSimUnits(FRAME_WIDTH / 2), ConvertUnits.ToSimUnits(FRAME_HEIGHT / 2)), 1.0f));
             this.BodyType = BodyType.Dynamic;
             this.FixedRotation = true;
             this.Restitution = 0.0f;
@@ -74,13 +81,29 @@ namespace RobotRampage
                 direction = PlayerDirection.LEFT;
                 EquipedWeapon.Direction = PlayerDirection.LEFT;
             }
-             
+
             EquipedWeapon.Update(gameTime);
+
+            timeCounter += gameTime.ElapsedGameTime.Milliseconds / 1000.0f;
+
+            if (timeCounter > .04167f)
+            {
+                frameCounter++;
+
+                timeCounter -= .04167f;
+            }
+
+            if (frameCounter >= FRAME_COUNT)
+                frameCounter = 0;
+             
+            
         }
 
         public void Draw(SpriteBatch sb)
         {
-            Vector2 offset = new Vector2(ConvertUnits.ToDisplayUnits(Position.X) - texture.Width / 2, ConvertUnits.ToDisplayUnits(Position.Y) - texture.Height / 2);
+            Vector2 offset = new Vector2(ConvertUnits.ToDisplayUnits(Position.X) - FRAME_WIDTH / 2, ConvertUnits.ToDisplayUnits(Position.Y) - FRAME_HEIGHT / 2);
+
+            srcRect = new Rectangle(frameCounter * (FRAME_WIDTH + FRAME_SEPERATION), (int)State * (FRAME_HEIGHT_SPERATION + FRAME_HEIGHT), FRAME_WIDTH, FRAME_HEIGHT);
 
             if (direction == PlayerDirection.LEFT)
                 sb.Draw(this.texture, offset, srcRect, Color.White, 0.0f, new Vector2(0, 0), 1.0f, SpriteEffects.FlipHorizontally, 1.0f);

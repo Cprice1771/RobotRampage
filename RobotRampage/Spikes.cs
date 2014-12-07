@@ -17,7 +17,7 @@ namespace RobotRampage
         MainGame parent;
         Rectangle srcRect;
 
-        public Spikes(Texture2D t, MainGame game, World w)
+        public Spikes(Texture2D t, MainGame game, World w, float rot)
             : base(w)
         {
             texture = t;
@@ -29,6 +29,7 @@ namespace RobotRampage
             this.Friction = 1.0f;
             this.IgnoreGravity = true;
             this.MarkedForRemoval = false;
+            Rotation = rot;
         }
 
         public bool MarkedForRemoval

@@ -36,8 +36,8 @@ namespace RobotRampage
             {
                 if (playGameRect.Contains(Mouse.GetState().Position))
                     parent.StartGame();
-                else if (optionsRect.Contains(Mouse.GetState().Position))
-                    parent.GoToOptionsMenu();
+                //else if (optionsRect.Contains(Mouse.GetState().Position))
+                    //parent.GoToOptionsMenu();
             }
         }
 
@@ -45,7 +45,7 @@ namespace RobotRampage
         {
             sb.Draw(title,titleRect, Color.White);
             sb.Draw(playGame, playGameRect, Color.Red);
-            sb.Draw(options, optionsRect, Color.Red);
+           // sb.Draw(options, optionsRect, Color.Red);
         }
     }
 }

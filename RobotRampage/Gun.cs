@@ -1,4 +1,5 @@
 ﻿using FarseerPhysics;
+using MediaPlayerHelper;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -35,6 +36,8 @@ namespace RobotRampage
         double reloadSpeed;
         double reloadTime;
         RobotRampage.MainGame.CreateProjectile shoot;
+        SongFile shootEffect;
+        SongFile emptyEffect;
         #endregion
 
         
@@ -68,7 +71,7 @@ namespace RobotRampage
         /// <param name="ammo">Starting ammo</param>
         /// <param name="fr">Fire rate in ms</param>
         /// <param name="rs">Reload speed in ms</param>
-        public Gun(Texture2D t, Vector2 pos, MainGame game, int d, int magSize, float mv, int ammo, double fr, double rs, RobotRampage.MainGame.CreateProjectile cp)
+        public Gun(Texture2D t, Vector2 pos, MainGame game, int d, int magSize, float mv, int ammo, double fr, double rs, RobotRampage.MainGame.CreateProjectile cp, SongFile gunShot, SongFile gunEmpty)
         {
             Texture = t;
             position = pos;
@@ -95,6 +98,8 @@ namespace RobotRampage
             reloadTime = 0.0;
             shoot = cp;
             this.MarkedForRemoval = false;
+            shootEffect = gunShot;
+            emptyEffect = gunEmpty;
         }
 
         public void Update(Microsoft.Xna.Framework.GameTime gameTime)
@@ -130,12 +135,12 @@ namespace RobotRampage
             if(Direction == PlayerDirection.RIGHT)
             {
                 offset = new Vector2(position.X + 10, position.Y);
-                sb.Draw(this.Texture, offset, srcRect, Color.White, Rotation, new Vector2(Texture.Width, Texture.Height / 2), 1.0f, SpriteEffects.FlipVertically, 1.0f);
+                sb.Draw(this.Texture, offset, srcRect, Color.White, Rotation, new Vector2(Texture.Width, Texture.Height / 2), .75f, SpriteEffects.FlipVertically, 1.0f);
             }
             else
             {
                 offset = new Vector2(position.X - 100, position.Y);
-                sb.Draw(this.Texture, position, srcRect, Color.White, Rotation, new Vector2(Texture.Width, Texture.Height / 2), 1.0f, SpriteEffects.None, 1.0f);
+                sb.Draw(this.Texture, position, srcRect, Color.White, Rotation, new Vector2(Texture.Width, Texture.Height / 2), .75f, SpriteEffects.None, 1.0f);
             }
         }
 
@@ -150,8 +155,10 @@ namespace RobotRampage
                 //parent.CreateRocket(damage, Rotation, muzzleVelocity);
                 shoot(damage, Rotation, muzzleVelocity);
                 LoadedAmmo--;
-                
+                MediaPlayerHelper.MediaPlayerHelper.Instance.PlaySound(shootEffect);
             }
+            else
+                MediaPlayerHelper.MediaPlayerHelper.Instance.PlaySound(emptyEffect);
         }
 
         public void Reload()

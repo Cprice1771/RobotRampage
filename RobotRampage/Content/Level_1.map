@@ -1,4 +1,4 @@
-SpawnPoint,250,-100
+SpawnPoint,250,-85
 Floor,400,0
 Floor,1200,0
 Floor,2000,0
@@ -60,4 +60,4 @@ Robot,2700,-1450
 Robot,3350,-2000
 Robot,3600,-2000
 Robot,3912,-2000
-WinPoint,4652,-2554
+WinPoint,4652,-2485
