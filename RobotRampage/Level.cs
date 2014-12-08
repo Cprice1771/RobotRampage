@@ -76,6 +76,32 @@ namespace RobotRampage
             }
         }
 
+        public Rectangle GetLevelDimensions()
+        {
+            float minX  = 0;
+            float minY = 0;
+            float maxX = 0;
+            float maxY = 0;
+
+            foreach (KeyValuePair<Type, List<List<float>>> kvp in Objects)
+            {
+                foreach (List<float> values in kvp.Value)
+                {
+                    if (values[0] > maxX)
+                        maxX = values[0];
+                    else if (values[0] < minX)
+                        minX = values[0];
+
+                    if (values[1] > maxY)
+                        maxY = values[1];
+                    else if (values[1] < minY)
+                        minY = values[1];
+                }
+            }
+
+            return new Rectangle((int)ConvertUnits.ToDisplayUnits(minX), (int)ConvertUnits.ToDisplayUnits(minY), (int)ConvertUnits.ToDisplayUnits(maxX - minX), (int)ConvertUnits.ToDisplayUnits(maxY - minY));
+        }
+
         /// <summary>
         /// Parses a level file
         /// </summary>

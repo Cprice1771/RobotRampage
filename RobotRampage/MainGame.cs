@@ -51,8 +51,10 @@ namespace RobotRampage
         int mouseWheelLoc;
         List<Level> singlePlayerLevels;
         int currentLevel;
-        MainMenu menu;
+        MainMenu mainMenu;
+        LevelCompleteMenu levelCompleteMenu;
         string contentPath;
+        Rectangle levelDimensions;
 
         #region Audio
         SongFile levelMusic;
@@ -94,6 +96,9 @@ namespace RobotRampage
         Texture2D healthTextureSheet;
         Texture2D smokeParticleTexture;
         Texture2D backgroundTexture;
+        Texture2D nextLevelTexture;
+        Texture2D mainMenuTexture;
+        Texture2D levelCompleteTexture;
         #endregion
 
         #region world objects
@@ -133,12 +138,14 @@ namespace RobotRampage
             
             gameObjects = new List<IGameObject>();
             State = GameState.MAIN_MENU;
-            menu = new MainMenu(Title, PlayGameTexture, OptionsMenuTexture, this);
+            mainMenu = new MainMenu(Title, PlayGameTexture, OptionsMenuTexture, this);
+            levelCompleteMenu = new LevelCompleteMenu(levelCompleteTexture, nextLevelTexture, mainMenuTexture, this);
             currentLevel = 0;
+            
             //singlePlayerLevels = CreateLevels();
             singlePlayerLevels = new List<Level>();
             singlePlayerLevels = ReadInLevels();
-
+            levelDimensions = singlePlayerLevels[currentLevel].GetLevelDimensions();
             CreatePlayer();
             hud = new HUD(player.Inventory, player.EquipedWeaponSlot, new Vector2(0, 0), font, this, new HealthBar(healthTextureSheet, this));
             gameCamera = new Camera();
@@ -247,6 +254,9 @@ namespace RobotRampage
             healthTextureSheet = Content.Load<Texture2D>("hpBars");
             smokeParticleTexture = Content.Load<Texture2D>("smoke");
             backgroundTexture = Content.Load<Texture2D>("background");
+            nextLevelTexture = Content.Load<Texture2D>("nextlevel");
+            mainMenuTexture = Content.Load<Texture2D>("mainmenu");
+            levelCompleteTexture = Content.Load<Texture2D>("levelcomplete");
         }
         #endregion
 
@@ -385,7 +395,11 @@ namespace RobotRampage
                     #endregion
                     break;
                 case GameState.MAIN_MENU:
-                    menu.Update(gameTime);
+                    mainMenu.Update(gameTime);
+                    gameCamera.Position = Vector2.Zero;
+                    break;
+                case GameState.LEVEL_COMPLETE:
+                    levelCompleteMenu.Update(gameTime);
                     gameCamera.Position = Vector2.Zero;
                     break;
                 case GameState.OPTIONS_MENU:
@@ -425,7 +439,7 @@ namespace RobotRampage
             {
                 spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.Opaque, SamplerState.LinearWrap,
     DepthStencilState.Default, RasterizerState.CullNone, null, viewMaxtrix * Matrix.CreateScale(new Vector3(GetScreenScale().X, GetScreenScale().Y, GetScreenScale().Z)));
-                spriteBatch.Draw(backgroundTexture, new Rectangle(0, -10000, 10000, 10000), new Rectangle(0, -10000, 10000, 10000), Color.White);
+                spriteBatch.Draw(backgroundTexture, levelDimensions, levelDimensions, Color.White);
                 spriteBatch.End();
             }
 
@@ -445,7 +459,10 @@ namespace RobotRampage
                     
                     break;
                 case GameState.MAIN_MENU:
-                    menu.Draw(spriteBatch);
+                    mainMenu.Draw(spriteBatch);
+                    break;
+                case GameState.LEVEL_COMPLETE:
+                    levelCompleteMenu.Draw(spriteBatch);
                     break;
                 case GameState.OPTIONS_MENU:
                     throw new NotImplementedException();
@@ -631,10 +648,13 @@ namespace RobotRampage
 
         private void CreateExplosion(Vector2 pos)
         {
-            MediaPlayerHelper.MediaPlayerHelper.Instance.PlaySound(explosionEffect);
+            if(OnScreen(pos))
+                MediaPlayerHelper.MediaPlayerHelper.Instance.PlaySound(explosionEffect);
             Explosion ex = new Explosion(ExplosionSpriteSheet, this, pos);
             gameObjects.Add(ex);
         }
+
+        
 
         public void CreateSmoke(Vector2 pos)
         {
@@ -720,23 +740,13 @@ namespace RobotRampage
         {
             if (fixtureB.Body is Player)
             {
-                MediaPlayerHelper.MediaPlayerHelper.Instance.PlaySound(successSound);
-                 ClearWorld();
-                currentLevel++;
-                if (currentLevel == singlePlayerLevels.Count) //TODO: win game screen
-                {
-                    GoToMainMenu();
-                    return true;
-                }
-                gameObjects = new List<IGameObject>();
-                //ClearWorld();
-                //CreateGameObjectsFromLevel(singlePlayerLevels[currentLevel].Objects);
-                //singlePlayerLevels[currentLevel].PlayMusic();
-                respawnPlayer();
+                GoToWinLevelMenmu();
             }
 
             return true;
         }
+
+        
 
         private void ClearWorld()
         {
@@ -826,6 +836,15 @@ namespace RobotRampage
         #endregion
 
         #region private Helpers
+        private bool OnScreen(Vector2 pos)
+        {
+            if ((ConvertUnits.ToDisplayUnits(pos.Y)) + CameraOffset.Y < MainGame.ScreenHeight && (ConvertUnits.ToDisplayUnits(pos.Y)) + CameraOffset.Y > 0 &&
+                (ConvertUnits.ToDisplayUnits(pos.X)) + CameraOffset.X < MainGame.ScreenWidth && (ConvertUnits.ToDisplayUnits(pos.X)) + CameraOffset.X > 0)
+                return true;
+
+            return false;
+        }
+
         private List<Level> ReadInLevels()
         {
             string[] levels = Directory.GetFiles(Directory.GetCurrentDirectory() + "\\content");
@@ -1017,6 +1036,34 @@ namespace RobotRampage
             IsMouseVisible = true;
             _backgroundColor = Color.White;
         }
+
+        internal void NextLevel()
+        {
+            ClearWorld();
+            currentLevel++;
+            levelDimensions = singlePlayerLevels[currentLevel].GetLevelDimensions();
+            if (currentLevel == singlePlayerLevels.Count) //TODO: win game screen
+            {
+                GoToMainMenu();
+                return;
+            }
+            gameObjects = new List<IGameObject>();
+            //ClearWorld();
+            //CreateGameObjectsFromLevel(singlePlayerLevels[currentLevel].Objects);
+            //singlePlayerLevels[currentLevel].PlayMusic();
+            respawnPlayer();
+            State = GameState.LEVEL;
+        }
+
+        private void GoToWinLevelMenmu()
+        {
+            MediaPlayerHelper.MediaPlayerHelper.Instance.PlaySound(successSound);
+            gameCamera.Position = ConvertUnits.ToSimUnits(0f, 0f);
+            CameraOffset = gameCamera.Position;
+            State = GameState.LEVEL_COMPLETE;
+            IsMouseVisible = true;
+            _backgroundColor = Color.Black;
+        }
         #endregion
 
         #region Cleanup
@@ -1037,5 +1084,7 @@ namespace RobotRampage
         }
         #endregion
 
+
+        
     }
 }

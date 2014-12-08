@@ -47,6 +47,7 @@
     <Compile Include="Interfaces\IGameObject.cs" />
     <Compile Include="Interfaces\ILivingThing.cs" />
     <Compile Include="Level.cs" />
+    <Compile Include="LevelCompleteMenu.cs" />
     <Compile Include="MainGame.cs" />
     <Compile Include="MainMenu.cs" />
     <Compile Include="SmokeParticle.cs" />
@@ -128,6 +129,15 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\laser.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\levelcomplete.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\mainmenu.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\nextlevel.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\Options.png">

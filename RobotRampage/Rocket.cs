@@ -44,7 +44,7 @@ namespace RobotRampage
             {
                 timeCounter -= .02167f;
 
-                Vector2 rocketTailLocation = new Vector2(ConvertUnits.ToDisplayUnits(Position.X) - texture.Width / 2, ConvertUnits.ToDisplayUnits(Position.Y) - texture.Height / 2);
+                Vector2 rocketTailLocation = new Vector2((ConvertUnits.ToDisplayUnits(Position.X) - texture.Width / 2) + (float)(Math.Cos(Rotation) * texture.Width / 2), (ConvertUnits.ToDisplayUnits(Position.Y) - texture.Height / 2) + (float)(Math.Sin(Rotation) * texture.Width / 2));
                 parent.CreateSmoke(rocketTailLocation);
             }
         }
@@ -57,8 +57,8 @@ namespace RobotRampage
 
         internal bool OffScreen()
         {
-            if ((ConvertUnits.ToDisplayUnits(Position.Y) + parent.CameraOffset.Y) > 500 || (ConvertUnits.ToDisplayUnits(Position.Y) + parent.CameraOffset.Y) < 0 ||
-                (ConvertUnits.ToDisplayUnits(Position.X) + parent.CameraOffset.X) > 800 || (ConvertUnits.ToDisplayUnits(Position.X) + parent.CameraOffset.X) < 0)
+            if ((ConvertUnits.ToDisplayUnits(Position.Y)) + parent.CameraOffset.Y < MainGame.ScreenHeight && (ConvertUnits.ToDisplayUnits(Position.Y)) + parent.CameraOffset.Y > 0 &&
+                (ConvertUnits.ToDisplayUnits(Position.X)) + parent.CameraOffset.X < MainGame.ScreenWidth && (ConvertUnits.ToDisplayUnits(Position.X)) + parent.CameraOffset.X > 0)
                 return true;
 
             return false;

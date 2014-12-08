@@ -29,7 +29,8 @@ namespace RobotRampage
     {
         MAIN_MENU,
         OPTIONS_MENU,
-        LEVEL
+        LEVEL,
+        LEVEL_COMPLETE
     }
 
     public enum RobotState : int
