@@ -53,7 +53,6 @@ namespace RobotRampage
         int currentLevel;
         MainMenu menu;
         string contentPath;
-        MediaPlayerHelper.MediaPlayerHelper mediaPlayer;
 
         #region Audio
         SongFile levelMusic;
@@ -94,6 +93,7 @@ namespace RobotRampage
         Texture2D SpikeTexture;
         Texture2D healthTextureSheet;
         Texture2D smokeParticleTexture;
+        Texture2D backgroundTexture;
         #endregion
 
         #region world objects
@@ -138,35 +138,34 @@ namespace RobotRampage
             //singlePlayerLevels = CreateLevels();
             singlePlayerLevels = new List<Level>();
             singlePlayerLevels = ReadInLevels();
+
             CreatePlayer();
             hud = new HUD(player.Inventory, player.EquipedWeaponSlot, new Vector2(0, 0), font, this, new HealthBar(healthTextureSheet, this));
             gameCamera = new Camera();
             MediaPlayerHelper.MediaPlayerHelper.Instance.Loop = true;
-            //TODO uncomment
-            //MediaPlayerHelper.MediaPlayerHelper.Instance.Play(menuMusic);
+            MediaPlayerHelper.MediaPlayerHelper.Instance.Play(menuMusic);
             IsMouseVisible = true;
             _backgroundColor = Color.Black;
         }
 
 
-        private List<Level> CreateLevels()
-        {
-            //TODO create or load all our levels for the game
-            CreateEnemies();
-            CreateFloors();
-            CreateWalls();
-            CreateWinPoint(ConvertUnits.ToSimUnits(1500, 700));
-            List<Level> levels = new List<Level>();
-            Dictionary<Type, List<List<float>>> levelObjects = GetLevelDictFromGameObjects(gameObjects);
-            Level level1 = new Level(levelObjects, new Vector2(ConvertUnits.ToSimUnits(150), ConvertUnits.ToSimUnits(700)), levelMusic, "Level 1");
-            levels.Add(level1);
-            Rocket r = new Rocket(rocketTexture, this, 50, physicsWorld);
-            r.Position = ConvertUnits.ToSimUnits(100, 100);
-            Level level2 = new Level(levelObjects, new Vector2(ConvertUnits.ToSimUnits(150), ConvertUnits.ToSimUnits(700)), levelMusic, "Level 2");
-            levels.Add(level2);
+        //private List<Level> CreateLevels()
+        //{
+        //    CreateEnemies();
+        //    CreateFloors();
+        //    CreateWalls();
+        //    CreateWinPoint(ConvertUnits.ToSimUnits(1500, 700));
+        //    List<Level> levels = new List<Level>();
+        //    Dictionary<Type, List<List<float>>> levelObjects = GetLevelDictFromGameObjects(gameObjects);
+        //    Level level1 = new Level(levelObjects, new Vector2(ConvertUnits.ToSimUnits(150), ConvertUnits.ToSimUnits(700)), levelMusic, "Level 1");
+        //    levels.Add(level1);
+        //    Rocket r = new Rocket(rocketTexture, this, 50, physicsWorld);
+        //    r.Position = ConvertUnits.ToSimUnits(100, 100);
+        //    Level level2 = new Level(levelObjects, new Vector2(ConvertUnits.ToSimUnits(150), ConvertUnits.ToSimUnits(700)), levelMusic, "Level 2");
+        //    levels.Add(level2);
 
-            return levels;
-        }
+        //    return levels;
+        //}
 
         
 
@@ -183,6 +182,9 @@ namespace RobotRampage
             contentPath = System.IO.Path.Combine(Environment.CurrentDirectory + "\\Content");
 
             levelMusic = new SongFile(System.IO.Path.Combine(contentPath + "\\FailingDefense.wma"));
+
+            
+
             menuMusic = new SongFile(System.IO.Path.Combine(contentPath + "\\In a Heartbeat.mp3"));
             deathEffect = new SongFile(System.IO.Path.Combine(contentPath + "\\death.wav"));
             explosionEffect = new SongFile(System.IO.Path.Combine(contentPath + "\\explosion.wav"));
@@ -207,7 +209,7 @@ namespace RobotRampage
             
             crosshair = new Crosshair(crosshairTexture, new Vector2(ScreenWidth / 2, ScreenHeight / 2), this);
             assualtRifle = new Gun(defaultGunTexture, initialPlayerPosition, this, 35, 30, 7.5f, 200, 100.0, 1000.0, CreateBullet, rifleShootSound, emptyGunSound);
-            shotGun = new Gun(shotGunTexture, initialPlayerPosition, this, 50, 15, 7.5f, 20, 1000.0, 1500.0, CreateShotgunBullet, shotgunShootSound, emptyGunSound);
+            shotGun = new Gun(shotGunTexture, initialPlayerPosition, this, 50, 5, 7.5f, 20, 1000.0, 1500.0, CreateShotgunBullet, shotgunShootSound, emptyGunSound);
             //handGun = new Gun(handGunTexture, initialPlayerPosition, this, 40, 10, 5.0f, 200, 500.0, 800.0, CreateBullet, rifleShootSound, emptyGunSound);
             RocketLauncher = new Gun(rocketLauncherTexture, initialPlayerPosition, this, 100, 4, 7.5f, 20, 800.0, 1500.0, CreateRocket, rocketLauncherSound, emptyGunSound);
             mouseWheelLoc = Mouse.GetState().ScrollWheelValue;
@@ -244,6 +246,7 @@ namespace RobotRampage
             SpikeTexture = Content.Load<Texture2D>("spikes");
             healthTextureSheet = Content.Load<Texture2D>("hpBars");
             smokeParticleTexture = Content.Load<Texture2D>("smoke");
+            backgroundTexture = Content.Load<Texture2D>("background");
         }
         #endregion
 
@@ -417,13 +420,22 @@ namespace RobotRampage
         {
             GraphicsDevice.Clear(_backgroundColor);
             var viewMaxtrix = gameCamera.GetTransform();
+
+            if (State == GameState.LEVEL)
+            {
+                spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.Opaque, SamplerState.LinearWrap,
+    DepthStencilState.Default, RasterizerState.CullNone, null, viewMaxtrix * Matrix.CreateScale(new Vector3(GetScreenScale().X, GetScreenScale().Y, GetScreenScale().Z)));
+                spriteBatch.Draw(backgroundTexture, new Rectangle(0, -10000, 10000, 10000), new Rectangle(0, -10000, 10000, 10000), Color.White);
+                spriteBatch.End();
+            }
+
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied,
                                     null, null, null, null, viewMaxtrix * Matrix.CreateScale(GetScreenScale()));
             switch (State)
             {
                 case GameState.LEVEL:
-                    //TODO: Maybe uncomment?
-                    //singlePlayerLevels[currentLevel].Spawn.Draw(spriteBatch);
+                    
+
                     foreach (IGameObject go in gameObjects)
                         go.Draw(spriteBatch);
 
@@ -453,7 +465,7 @@ namespace RobotRampage
             player.Position = new Vector2(singlePlayerLevels[currentLevel].SpawnLocation.X, singlePlayerLevels[currentLevel].SpawnLocation.Y);
             
             assualtRifle = new Gun(defaultGunTexture, player.Position, this, 35, 30, 7.5f, 200, 100.0, 1000.0, CreateBullet, rifleShootSound, emptyGunSound);
-            shotGun = new Gun(shotGunTexture, player.Position, this, 50, 15, 7.5f, 20, 1000.0, 1500.0, CreateShotgunBullet, shotgunShootSound, emptyGunSound);
+            shotGun = new Gun(shotGunTexture, player.Position, this, 50, 5, 7.5f, 20, 1000.0, 1500.0, CreateShotgunBullet, shotgunShootSound, emptyGunSound);
             //handGun = new Gun(handGunTexture, player.Position, this, 40, 10, 5.0f, 200, 500.0, 800.0, CreateBullet, rifleShootSound, emptyGunSound);
             RocketLauncher = new Gun(rocketLauncherTexture, player.Position, this, 100, 4, 7.5f, 20, 800.0, 1500.0, CreateRocket, rocketLauncherSound, emptyGunSound);
 
@@ -715,11 +727,6 @@ namespace RobotRampage
                 {
                     GoToMainMenu();
                     return true;
-                }
-                else //Play the next level music
-                {
-                    //TODO uncomment
-                    //mediaPlayer.Play(singlePlayerLevels[currentLevel].LevelMusic);
                 }
                 gameObjects = new List<IGameObject>();
                 //ClearWorld();
@@ -983,8 +990,7 @@ namespace RobotRampage
             CameraOffset = gameCamera.Position;
             State = GameState.MAIN_MENU;
             IsMouseVisible = true;
-            //TODO uncomment
-            //mediaPlayer.Play(menuMusic);
+            MediaPlayerHelper.MediaPlayerHelper.Instance.Play(menuMusic);
             _backgroundColor = Color.Black;
 
             
@@ -996,10 +1002,10 @@ namespace RobotRampage
             gameObjects = new List<IGameObject>();
             respawnPlayer();
             State = GameState.LEVEL;
-            //TODO: unbcomment
-            //mediaPlayer.Play(singlePlayerLevels[currentLevel].LevelMusic);
+
+            MediaPlayerHelper.MediaPlayerHelper.Instance.Play(levelMusic);
             IsMouseVisible = false;
-            _backgroundColor = Color.SlateGray;
+            _backgroundColor = Color.Black;
 
             //foreach (Level l in singlePlayerLevels)
             //    l.Write();

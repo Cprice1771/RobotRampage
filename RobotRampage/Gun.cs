@@ -106,17 +106,21 @@ namespace RobotRampage
         {
             lastFire += gameTime.ElapsedGameTime.TotalMilliseconds;
 
-            if (Mouse.GetState().LeftButton == ButtonState.Pressed && !Reloading && LoadedAmmo > 0)
+            if (Mouse.GetState().LeftButton == ButtonState.Pressed)
             {
                 
                 if(lastFire == -1.0f || 
                     lastFire  > fireRate)
                 {
                     lastFire = gameTime.ElapsedGameTime.TotalMilliseconds;
-                    Shoot();
+
+                    if (Reloading || LoadedAmmo <= 0)
+                        MediaPlayerHelper.MediaPlayerHelper.Instance.PlaySound(emptyEffect);
+                    else  
+                        Shoot();
                 }
             }
-            else if (Reloading)
+            if (Reloading)
             {
                 reloadTime += gameTime.ElapsedGameTime.TotalMilliseconds;
                 if (reloadTime >= reloadSpeed)
@@ -157,8 +161,7 @@ namespace RobotRampage
                 LoadedAmmo--;
                 MediaPlayerHelper.MediaPlayerHelper.Instance.PlaySound(shootEffect);
             }
-            else
-                MediaPlayerHelper.MediaPlayerHelper.Instance.PlaySound(emptyEffect);
+                
         }
 
         public void Reload()

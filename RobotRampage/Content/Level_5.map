@@ -1,114 +1,104 @@
 SpawnPoint,250,-85
+Floor, 400,0
+Floor, 1200,0
 Wall,0,-125
 Wall,0,-375
 Wall,0,-625
 Wall,0,-875
-Wall,0,-1025
-Floor, 400, -1025
-Floor, 1200, -1025
-Floor, 2000, -1025
-Floor, 2800, -1025
-Floor, 3600, -1025
-Floor, 4400, -1025
-Floor, 5200, -1025
-Floor, 6000, -1025
-Floor, 6800, -1025
-Floor, 7600, -1025
-Floor, 400,0
-Floor, 1200,0
-Floor, 2000,0
-Floor, 2800,0
-Floor, 3600,0
-Floor, 4400,0
-Floor, 5200,0
-Floor, 6000,0
-Floor, 6800,0
-Floor, 7600,0
-Wall,8000,-125
-Wall,8000,-375
-Wall,8000,-625
-Wall,8000,-875
-Wall,8000,-1025
+Wall,0,-1125
+Wall,0,-1375
+Wall,0,-1625
+Wall,0,-1875
+Wall,0,-2125
+Wall,0,-2375
+Wall,0,-2625
+Wall,0,-2875
+Wall,0,-3125
+Wall,0,-3375
+Wall,0,-3625
+Wall,0,-3875
+Wall,0,-4125
+Wall,1575,-125
+Wall,1575,-375
+Wall,1575,-625
+Wall,1575,-875
+Wall,1575,-1125
+Wall,1575,-1375
+Wall,1575,-1625
+Wall,1575,-1875
+Wall,1575,-2125
+Wall,1575,-2375
+Wall,1575,-2625
+Wall,1575,-2875
+Wall,1575,-3125
+Wall,1575,-3375
+Wall,1575,-3625
+Wall,1575,-3875
+Wall,2375,-4125
+Spikes,500,-40
+Spikes,550,-40
+Spikes,600,-40
+Spikes,650,-40
+Spikes,700,-40
+Spikes,750,-40
 Spikes,800,-40
 Spikes,850,-40
 Spikes,900,-40
 Spikes,950,-40
 Spikes,1000,-40
 Spikes,1050,-40
-Spikes,1100,-40
-Spikes,1150,-40
-Spikes,1200,-40
-Spikes,1250,-40
-Spikes,1300,-40
-Spikes,1350,-40
-Spikes,1400,-40
-Spikes,1450,-40
-Spikes,1500,-40
-Spikes,1550,-40
-Spikes,1600,-40
-Spikes,1650,-40
-Spikes,1700,-40
-Spikes,1750,-40
-Spikes,1800,-40
-Spikes,1850,-40
-Spikes,1900,-40
-Spikes,1950,-40
-Spikes,2000,-40
-Spikes,2050,-40
-Spikes,2100,-40
-Spikes,2150,-40
-Spikes,2200,-40
-Spikes,2250,-40
-Spikes,2300,-40
-Spikes,2350,-40
-Spikes,2400,-40
-Spikes,2450,-40
-Spikes,2500,-40
-Spikes,2550,-40
-Spikes,2600,-40
-Spikes,2650,-40
-Spikes,3500,-40
-Spikes,3550,-40
-Spikes,3600,-40
-Spikes,3650,-40
-Spikes,3700,-40
-Spikes,3750,-40
-Spikes,3800,-40
-Spikes,3850,-40
-Spikes,3900,-40
-Spikes,3950,-40
-Spikes,4000,-40
-Spikes,4050,-40
-Spikes,4100,-40
-Spikes,4150,-40
-Spikes,4200,-40
-Spikes,4250,-40
-Spikes,4300,-40
-Spikes,4350,-40
-Spikes,4400,-40
-Spikes,4450,-40
-Spikes,4500,-40
-Spikes,4550,-40
-Spikes,4600,-40
-Spikes,4650,-40
-Spikes,4700,-40
-Spikes,4750,-40
-Spikes,4800,-40
-Spikes,4850,-40
-Spikes,4900,-40
-Spikes,4950,-40
-Spikes,5000,-40
-Spikes,5050,-40
-Spikes,5100,-40
-Spikes,5150,-40
-Spikes,5200,-40
-Spikes,5250,-40
-Spikes,5300,-40
-Spikes,5350,-40
-Spikes,5400,-40
-Spikes,5450,-40
-Robot,5650,-500
-Robot,5800,-550
-Robot,5600,-550
-Robot,5900,-525
-WinPoint,7600,-85
+Spikes,1525,-100,4.71
+Spikes,1525,-150,4.71
+Spikes,1525,-200,4.71
+Spikes,1525,-250,4.71
+Spikes,1525,-300,4.71
+Spikes,1525,-350,4.71
+Spikes,1525,-400,4.71
+Spikes,1525,-450,4.71
+Spikes,1525,-500,4.71
+Spikes,1525,-550,4.71
+Spikes,1525,-600,4.71
+Spikes,1525,-650,4.71
+Spikes,1525,-700,4.71
+Spikes,1525,-750,4.71
+Spikes,1525,-800,4.71
+Spikes,1525,-850,4.71
+Spikes,1525,-900,4.71
+Spikes,1525,-950,4.71
+Spikes,1525,-1000,4.71
+Spikes,1525,-1050,4.71
+Spikes,1525,-1100,4.71
+Spikes,1525,-1150,4.71
+Spikes,1525,-1200,4.71
+Spikes,1525,-1250,4.71
+Spikes,1525,-1300,4.71
+Spikes,50,-3000,1.57
+Spikes,50,-3050,1.57
+Spikes,50,-3100,1.57
+Spikes,50,-3150,1.57
+Spikes,50,-3200,1.57
+Spikes,50,-3250,1.57
+Spikes,50,-3300,1.57
+Spikes,50,-3350,1.57
+Spikes,50,-3400,1.57
+Spikes,50,-3450,1.57
+Spikes,50,-3500,1.57
+Spikes,50,-3550,1.57
+Spikes,50,-3600,1.57
+Spikes,50,-3650,1.57
+Spikes,50,-3700,1.57
+Spikes,50,-3750,1.57
+Spikes,50,-3800,1.57
+Spikes,50,-3850,1.57
+Spikes,50,-3900,1.57
+Spikes,50,-3950,1.57
+Spikes,50,-4000,1.57
+Spikes,50,-4050,1.57
+Spikes,50,-4100,1.57
+Spikes,50,-4150,1.57
+Spikes,50,-4200,1.57
+Floor, 400,-4250
+Floor, 1200,-4250
+Floor, 2000,-4250
+Floor, 2000,-4000
+WinPoint,1800,-4085

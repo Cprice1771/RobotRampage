@@ -19,6 +19,7 @@ namespace RobotRampage
         float scale;
         MainGame parent;
         int age;
+        Color color;
 
         public SmokeParticle(MainGame g, Texture2D tex, Vector2 pos)
         {
@@ -31,13 +32,15 @@ namespace RobotRampage
             scale = 0.5f;
             IsAlive = true;
 
-            age = 30;
+            age = 255;
+            
         }
 
         public void Draw(SpriteBatch sb)
         {
             //Vector2 offset = new Vector2(ConvertUnits.ToDisplayUnits(position.X), ConvertUnits.ToDisplayUnits(position.Y));
-            sb.Draw(texture, position, null, Color.White, 0.0f, midpoint, scale + ((0.5f) * ((float)(30 - age) / 30)), SpriteEffects.None, 1.0f);
+            color = new Color(255, 255, 255, age);
+            sb.Draw(texture, position, null, color, 0.0f, midpoint, scale + ((0.5f) * ((float)(255 - age) / 255)), SpriteEffects.None, 1.0f);
 
         }
 
@@ -50,8 +53,8 @@ namespace RobotRampage
                 return;
             }
 
-            //make the particle only last 255/2 frames
-            age -= 1;
+            //make the particle only last 255/9 frames
+            age -= 9;
 
         }
     }

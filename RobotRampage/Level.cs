@@ -16,7 +16,6 @@ namespace RobotRampage
         public string Name { get; set; }
         public Vector2 SpawnLocation { get; set; }
 
-        public SongFile LevelMusic { get; set; }
 
         public Level(string fileName)
         {
@@ -24,12 +23,11 @@ namespace RobotRampage
             Parse(fileName);
         }
 
-        public Level(Dictionary<Type, List<List<float>>> objs, Vector2 spL, SongFile s, string n)
+        public Level(Dictionary<Type, List<List<float>>> objs, Vector2 spL, string n)
         {
             Objects = objs;
             Name = n;
             SpawnLocation = spL;
-            LevelMusic = s;
         }
 
         /// <summary>

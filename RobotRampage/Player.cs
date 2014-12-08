@@ -88,7 +88,8 @@ namespace RobotRampage
 
             if (timeCounter > .04167f)
             {
-                frameCounter++;
+                if(State != PlayerState.JUMPING || frameCounter < 3)
+                    frameCounter++;
 
                 timeCounter -= .04167f;
             }
