@@ -72,6 +72,11 @@ namespace RobotRampage
                         foreach (List<float> values in kvp.Value)
                             mapWriter.WriteLine("Spikes," + ConvertUnits.ToDisplayUnits(values[0]) + "," + ConvertUnits.ToDisplayUnits(values[1]) + "," + ConvertUnits.ToDisplayUnits(values[2]));
                     }
+                    else if (kvp.Key == typeof(Doodad))
+                    {
+                        foreach (List<float> values in kvp.Value)
+                            mapWriter.WriteLine("Doodad," + ConvertUnits.ToDisplayUnits(values[0]) + "," + ConvertUnits.ToDisplayUnits(values[1]) + "," + ConvertUnits.ToDisplayUnits(values[2]));
+                    }
                 }
             }
         }
@@ -176,6 +181,13 @@ namespace RobotRampage
                             Objects.Add(typeof(Spikes), new List<List<float>>());
 
                         Objects[typeof(Spikes)].Add(new List<float>() { ConvertUnits.ToSimUnits(float.Parse(objects[1])), ConvertUnits.ToSimUnits(float.Parse(objects[2])), rotation });
+                    }
+                    else if (objects[0] == "Doodad")
+                    {
+                        if (!Objects.ContainsKey(typeof(Doodad)))
+                            Objects.Add(typeof(Doodad), new List<List<float>>());
+
+                        Objects[typeof(Doodad)].Add(new List<float>() { ConvertUnits.ToSimUnits(float.Parse(objects[1])), ConvertUnits.ToSimUnits(float.Parse(objects[2])), rotation });
                     }
                     
                 }

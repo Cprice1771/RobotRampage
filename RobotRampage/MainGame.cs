@@ -99,6 +99,7 @@ namespace RobotRampage
         Texture2D nextLevelTexture;
         Texture2D mainMenuTexture;
         Texture2D levelCompleteTexture;
+        Texture2D doodadTexture;
         #endregion
 
         #region world objects
@@ -206,10 +207,17 @@ namespace RobotRampage
             //TryPlay(backgroundMusic);
 
             font = Content.Load<SpriteFont>("myFont");
-            
+
+
+            //var screen = Screen.AllScreens.First(e => e.Primary);
+            //Window.IsBorderless = true;
+            //Window.Position = new Point(screen.Bounds.X, screen.Bounds.Y);
+            //graphics.PreferredBackBufferWidth = screen.Bounds.Width;
+            //graphics.PreferredBackBufferHeight = screen.Bounds.Height;
 
             graphics.PreferredBackBufferHeight = ScreenHeight;
             graphics.PreferredBackBufferWidth = ScreenWidth;
+            graphics.IsFullScreen = true;
             graphics.ApplyChanges();
 
             Vector2 initialPlayerPosition = new Vector2(ScreenWidth / 2, 150);
@@ -257,6 +265,7 @@ namespace RobotRampage
             nextLevelTexture = Content.Load<Texture2D>("nextlevel");
             mainMenuTexture = Content.Load<Texture2D>("mainmenu");
             levelCompleteTexture = Content.Load<Texture2D>("levelcomplete");
+            doodadTexture = Content.Load<Texture2D>("doodad");
         }
         #endregion
 
@@ -267,7 +276,7 @@ namespace RobotRampage
         /// </summary>
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
-        {
+        { 
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
@@ -505,6 +514,12 @@ namespace RobotRampage
         {
             SpawnPoint spawnPoint = new SpawnPoint(pos, spawnPointTexture);
             gameObjects.Add(spawnPoint);
+        }
+
+        private void CreateDoodad(Vector2 vector2)
+        {
+            Doodad f = new Doodad(vector2, doodadTexture);
+            gameObjects.Add(f); 
         }
 
         private void CreateFloor(Vector2 pos)
@@ -964,6 +979,11 @@ namespace RobotRampage
                     foreach(List<float> data in kvp.Value)
                         CreateFloor(new Vector2(data[0], data[1]));
                 }
+                else if (kvp.Key == typeof(Doodad))
+                {
+                    foreach (List<float> data in kvp.Value)
+                        CreateDoodad(new Vector2(data[0], data[1]));
+                }
                 else if (kvp.Key == typeof(Wall))
                 {
                     foreach (List<float> data in kvp.Value)
@@ -998,6 +1018,8 @@ namespace RobotRampage
                 
             }
         }
+
+        
 
         
         #endregion
@@ -1039,14 +1061,15 @@ namespace RobotRampage
 
         internal void NextLevel()
         {
+            IsMouseVisible = false;
             ClearWorld();
             currentLevel++;
-            levelDimensions = singlePlayerLevels[currentLevel].GetLevelDimensions();
             if (currentLevel == singlePlayerLevels.Count) //TODO: win game screen
             {
                 GoToMainMenu();
                 return;
             }
+            levelDimensions = singlePlayerLevels[currentLevel].GetLevelDimensions();
             gameObjects = new List<IGameObject>();
             //ClearWorld();
             //CreateGameObjectsFromLevel(singlePlayerLevels[currentLevel].Objects);

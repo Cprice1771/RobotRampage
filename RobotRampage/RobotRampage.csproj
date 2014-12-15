@@ -38,6 +38,7 @@
     <Compile Include="Bullet.cs" />
     <Compile Include="Camera.cs" />
     <Compile Include="Crosshair.cs" />
+    <Compile Include="Doodad.cs" />
     <Compile Include="enums.cs" />
     <Compile Include="Explosion.cs" />
     <Compile Include="Floor.cs" />
@@ -84,6 +85,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\death.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\doodad.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\emissionSpriteSheet.png">
